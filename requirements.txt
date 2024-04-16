@@ -1,0 +1,16 @@
+asttokens==2.4.1
+bleak==0.21.1
+click==8.1.7
+devtools==0.12.2
+executing==2.0.1
+loguru==0.7.2
+markdown-it-py==3.0.0
+mdurl==0.1.2
+pillow==10.3.0
+Pygments==2.17.2
+pyobjc-core==9.2
+pyobjc-framework-Cocoa==9.2
+pyobjc-framework-CoreBluetooth==9.2
+pyobjc-framework-libdispatch==9.2
+rich==13.7.1
+six==1.16.0
