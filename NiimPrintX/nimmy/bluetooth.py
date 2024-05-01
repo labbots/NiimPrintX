@@ -1,8 +1,8 @@
 import asyncio
 from bleak import BleakClient, BleakScanner
 
-from exception import BLEException
-from logger_config import get_logger
+from .exception import BLEException
+from .logger_config import get_logger
 
 logger = get_logger()
 

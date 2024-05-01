@@ -1,0 +1,23 @@
+[tool.poetry]
+name = "niimprintx"
+version = "0.1.0"
+description = "App to print labels using NiimBot printer"
+authors = ["Your Name <you@example.com>"]
+license = "GNU GPLv3"
+readme = "README.md"
+
+[tool.poetry.dependencies]
+python = ">=3.12,<3.13"
+click = "^8.1.7"
+bleak = "^0.21.1"
+pygobject = "^3.48.2"
+cairocffi = "^1.7.0"
+pillow = "^10.3.0"
+loguru = "^0.7.2"
+
+[tool.poetry.group.dev.dependencies]
+devtools = "^0.12.2"
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"

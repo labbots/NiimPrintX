@@ -3,10 +3,10 @@ import asyncio
 import struct
 import math
 from PIL import Image, ImageOps
-from exception import BLEException, PrinterException
-from bluetooth import BLETransport
-from logger_config import get_logger
-from packet import NiimbotPacket, packet_to_int
+from .exception import BLEException, PrinterException
+from .bluetooth import BLETransport
+from .logger_config import get_logger
+from .packet import NiimbotPacket, packet_to_int
 
 
 from devtools import debug
