@@ -27,27 +27,30 @@ class PrintOption:
         self.frame = ttk.Frame(parent)
         self.create_widgets()
         self.print_op = PrinterOperation(self.config)
-        # self.check_heartbeat()
+        self.check_heartbeat()
 
     def check_heartbeat(self):
         asyncio.run_coroutine_threadsafe(self.schedule_heartbeat(), self.root.async_loop)
 
     async def schedule_heartbeat(self):
         while True:
-            debug(self.config.printer_connected, self.config.print_job)
+            # debug(self.config.printer_connected, self.config.print_job)
             if self.print_op.printer and not self.config.print_job:
-                debug("connected")
-                hb = await self.print_op.heartbeat()
-                self.root.after(0, lambda: self.update_status(True, hb))
-            else:
-                debug("not connected")
+                # debug("connected")
+                state, hb = await self.print_op.heartbeat()
+                self.root.after(0, lambda: self.update_status(state, hb))
+            elif not self.config.print_job:
+                # debug("not connected")
                 self.root.after(0, lambda: self.update_status(False))
             await asyncio.sleep(5)
 
     def update_status(self, connected=False, hb_data=None):
-        debug(hb_data)
-        debug(f"Heartbeat received: {connected}")
+        # debug(hb_data)
+        # debug(f"Heartbeat received: {connected}")
         self.config.printer_connected = connected
+        if not connected and self.connect_button["state"] != tk.DISABLED:
+            self.connect_button.config(text="Connect")
+            self.connect_button.config(state=tk.NORMAL)
         self.root.after(0, lambda: self.root.status_bar.update_status(connected))
 
     def create_widgets(self):
@@ -351,7 +354,7 @@ class PrintOption:
     def _print_handler(self, future):
         result = future.result()
         if result:
-            debug("print", result)
+            # debug("print", result)
             self.config.print_job = False
             self.root.after(0, lambda: self.root.status_bar.update_status(result))
         self.print_button.config(state=tk.NORMAL)

@@ -84,7 +84,7 @@ class PrinterClient:
         if not self.char_uuid:
             raise PrinterException("Cannot find bluetooth characteristics.")
 
-    async def send_command(self, request_code, data):
+    async def send_command(self, request_code, data, timeout=10):
         try:
             if not self.transport.client or not self.transport.client.is_connected:
                 await self.connect()
@@ -92,11 +92,13 @@ class PrinterClient:
             await self.transport.start_notification(self.char_uuid, self.notification_handler)
             await self.transport.write(packet.to_bytes(), self.char_uuid)
             logger.debug(f"Printer command sent - {RequestCodeEnum(request_code).name}")
-            await self.notification_event.wait()  # Wait until the notification event is set
+            await asyncio.wait_for(self.notification_event.wait(), timeout)  # Wait until the notification event is set
             response = NiimbotPacket.from_bytes(self.notification_data)
             await self.transport.stop_notification(self.char_uuid)
             self.notification_event.clear()  # Reset the event for the next notification
             return response
+        except asyncio.TimeoutError:
+            logger.error(f"Timeout occurred for request {RequestCodeEnum(request_code).name}")
         except BLEException as e:
             logger.error(f"An error occurred: {e}")
 

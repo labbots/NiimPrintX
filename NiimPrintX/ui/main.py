@@ -19,7 +19,7 @@ import threading
 
 from loguru import logger
 
-logger.disable('nimmy')
+logger.disable('NiimPrintX.nimmy')
 
 from devtools import debug
 class LabelPrinterApp(tk.Tk):

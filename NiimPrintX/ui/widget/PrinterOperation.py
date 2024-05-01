@@ -19,10 +19,9 @@ class PrinterOperation:
                 self.config.printer_connected = True
                 return True
         except Exception as e:
-            debug(e)
-            # messagebox.showerror("Error", f"Cannot connect to printer {model}.")
+            # debug(e)
+            messagebox.showerror("Error", f"Cannot connect to printer {model}.")
             return False
-
 
     async def printer_disconnect(self):
         try:
@@ -36,7 +35,6 @@ class PrinterOperation:
             messagebox.showerror("Error", f"{str(e)}.")
             return False
 
-
     async def print(self, image, density, quantity):
         try:
             if not self.config.printer_connected or not self.printer:
@@ -48,13 +46,12 @@ class PrinterOperation:
             messagebox.showerror("Error", f"{str(e)}.")
             return False
 
-
-
     async def heartbeat(self):
         try:
             if self.printer:
                 hb = await self.printer.heartbeat()
-                return hb
+                return True, hb
         except Exception as e:
-            print(f"Error {e}")
-            return False
+            # print(f"Error {e}")
+            self.printer = None
+            return False, {}
