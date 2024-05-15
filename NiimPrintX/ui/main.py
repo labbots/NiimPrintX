@@ -19,17 +19,47 @@ import threading
 
 from loguru import logger
 
+
 logger.disable('NiimPrintX.nimmy')
+
+# import sys
+# import logging
+#
+# logging.basicConfig(level=logging.DEBUG, filename='/Users/dhivah/Documents/Personal/repos/NiimPrintX/logfile.log', filemode='w',
+#                     format='%(name)s - %(levelname)s - %(message)s')
+
+# def handle_exception(exc_type, exc_value, exc_traceback):
+#     if issubclass(exc_type, KeyboardInterrupt):
+#         sys.__exit__(0)
+#     else:
+#         logging.error("Uncaught exception", exc_info=(exc_type, exc_value, exc_traceback))
+#
+# sys.excepthook = handle_exception
 
 from devtools import debug
 class LabelPrinterApp(tk.Tk):
     def __init__(self):
         super().__init__()
-        self.title('NiimprintX')
-        self.geometry('1100x800')  # Window size fixed as per your screenshot
+        self.title('NiimPrintX')
+        width=1100
+        height=800
+        x = (self.winfo_screenwidth() // 2) - (width // 2)
+        y = (self.winfo_screenheight() // 2) - (height // 2)
+        self.geometry(f"{width}x{height}+{x}+{y}")
         self.resizable(width=True, height=True)  # Allow window to be resizable
         self.protocol("WM_DELETE_WINDOW", self.on_close)
+        self.withdraw()
 
+        # self.async_loop = asyncio.new_event_loop()
+        # threading.Thread(target=self.start_asyncio_loop, daemon=True).start()
+        #
+        # self.app_config = AppConfig()
+        # self.create_widgets()
+        # self.create_menu()
+        # self.printer = None
+        # self.load_resources()
+
+    def load_resources(self):
         self.async_loop = asyncio.new_event_loop()
         threading.Thread(target=self.start_asyncio_loop, daemon=True).start()
 
@@ -37,6 +67,11 @@ class LabelPrinterApp(tk.Tk):
         self.create_widgets()
         self.create_menu()
         self.printer = None
+        self.after(5000, self.show_main_window)
+
+    def show_main_window(self):
+        self.deiconify()
+        self.lift()
 
     def create_menu(self):
         menu_bar = tk.Menu(self)
@@ -84,5 +119,9 @@ class LabelPrinterApp(tk.Tk):
             self.destroy()
 
 if __name__ == "__main__":
-    app = LabelPrinterApp()
-    app.mainloop()
+    try:
+        app = LabelPrinterApp()
+        app.load_resources()
+        app.mainloop()
+    except Exception as e:
+        raise e

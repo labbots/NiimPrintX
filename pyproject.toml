@@ -11,12 +11,13 @@ python = ">=3.12,<3.13"
 click = "^8.1.7"
 bleak = "^0.21.1"
 pygobject = "^3.48.2"
-cairocffi = "^1.7.0"
-pillow = "^10.3.0"
 loguru = "^0.7.2"
+pillow = "^10.3.0"
+pycairo = "^1.26.0"
 
 [tool.poetry.group.dev.dependencies]
 devtools = "^0.12.2"
+pyinstaller = "^6.6.0"
 
 [build-system]
 requires = ["poetry-core"]

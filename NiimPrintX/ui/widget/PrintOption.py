@@ -5,12 +5,13 @@ from tkinter import ttk
 from tkinter import filedialog
 from PIL import Image, ImageTk
 import gi
-import cairocffi as cairo
+# import cairocffi
+# cairocffi.install_as_pycairo()
 import cairo
 import tempfile
-
 gi.require_version('Pango', '1.0')
 gi.require_version('PangoCairo', '1.0')
+
 from gi.repository import Pango, PangoCairo
 
 from .PrinterOperation import PrinterOperation
@@ -118,7 +119,7 @@ class PrintOption:
         ctx.set_source_rgb(1, 1, 1)  # White background
         ctx.paint()
 
-        pango_context = PangoCairo.create_context(ctx)
+        # pango_context = PangoCairo.create_context(ctx)
 
         # Drawing images (if any)
         if self.config.image_items:
@@ -151,7 +152,8 @@ class PrintOption:
                 font_description.set_style(
                     Pango.Style.ITALIC if font_props['slant'] == 'italic' else Pango.Style.NORMAL)
 
-                pango_layout = Pango.Layout(pango_context)
+                # pango_layout = Pango.Layout(pango_context)
+                pango_layout = PangoCairo.create_layout(ctx)
                 pango_layout.set_font_description(font_description)
                 pango_layout.set_text(text, -1)
 
