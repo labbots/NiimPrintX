@@ -1,5 +1,5 @@
 import os
-
+import appdirs
 
 class AppConfig:
     def __init__(self):
@@ -58,3 +58,4 @@ class AppConfig:
         self.frames = {}
         self.print_job = False
         self.printer_connected = False
+        self.cache_dir = appdirs.user_cache_dir('NiimPrintX')

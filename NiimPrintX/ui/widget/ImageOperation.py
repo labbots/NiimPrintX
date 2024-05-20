@@ -3,7 +3,6 @@ from PIL import Image, ImageTk
 from devtools import debug
 
 
-
 class ImageOperation:
     def __init__(self, config):
         self.config = config
@@ -36,7 +35,8 @@ class ImageOperation:
         }
 
         # Make the image draggable and resizable
-        self.config.canvas.tag_bind(image_id, "<Button-1>", lambda event, img_id=image_id: self.select_image(event, img_id))
+        self.config.canvas.tag_bind(image_id, "<Button-1>",
+                                    lambda event, img_id=image_id: self.select_image(event, img_id))
         self.config.canvas.tag_bind(image_id, "<Button1-Motion>", lambda e, img_id=image_id: self.move_image(e, img_id))
 
     def start_image_resize(self, event, image_id):
@@ -69,7 +69,6 @@ class ImageOperation:
         )
         self.config.canvas.tag_bind(handle, "<Button-1>", lambda e: self.start_image_resize(e, image_id))
 
-
     def deselect_image(self):
         """Deselect the current image."""
         if self.config.current_selected_image:
@@ -77,7 +76,6 @@ class ImageOperation:
                 self.config.canvas.delete(self.config.image_items[self.config.current_selected_image]["bbox"])
                 self.config.canvas.delete(self.config.image_items[self.config.current_selected_image]["handle"])
             self.config.current_selected_image = None
-
 
     def move_image(self, event, image_id):
         """Move the selected image."""

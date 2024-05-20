@@ -4,30 +4,33 @@ from NiimPrintX.ui.main import LabelPrinterApp
 
 from NiimPrintX.ui.SplashScreen import SplashScreen
 
-import ctypes
-#
-# def load_libraries():
-#     if hasattr(sys, '_MEIPASS'):
-#         base_path = getattr(sys, '_MEIPASS', os.path.abspath("."))
-#         ctypes.CDLL(os.path.join(base_path, 'libharfbuzz.0.dylib'), mode=ctypes.RTLD_GLOBAL)
-#         ctypes.CDLL(os.path.join(base_path, 'libpangocairo-1.0.0.dylib'), mode=ctypes.RTLD_GLOBAL)
-#         os.environ['DYLD_LIBRARY_PATH'] = base_path + ':' + os.environ.get('DYLD_LIBRARY_PATH', '')
-
 def load_libraries():
     if hasattr(sys, '_MEIPASS'):
-        base_path = sys._MEIPASS
-    else:
-        base_path = os.path.abspath(".")
+        base_path = getattr(sys, '_MEIPASS', os.path.abspath("."))
+        magick_path = os.path.join(base_path, 'imagemagick')
+        env = os.environ.copy()
+        env['MAGICK_HOME'] = magick_path
+        env['PATH'] = os.path.join(magick_path, 'bin') + os.pathsep + env['PATH']
+        env['LD_LIBRARY_PATH'] = os.path.join(magick_path, 'lib') + os.pathsep + env.get(
+            'LD_LIBRARY_PATH', '')
+        env['MAGICK_CONFIGURE_PATH'] = os.path.join(magick_path, 'etc', 'ImageMagick-7')
+        os.environ['DYLD_LIBRARY_PATH'] = magick_path + ':' + os.environ.get('DYLD_LIBRARY_PATH', '')
 
-    harfbuzz_path = os.path.join(base_path, 'libharfbuzz.0.dylib')
-    pangocairo_path = os.path.join(base_path, 'libpangocairo-1.0.0.dylib')
+# def load_libraries():
+#     if hasattr(sys, '_MEIPASS'):
+#         base_path = sys._MEIPASS
+#     else:
+#         base_path = os.path.abspath(".")
+#
+#     harfbuzz_path = os.path.join(base_path, 'libharfbuzz.0.dylib')
+#     pangocairo_path = os.path.join(base_path, 'libpangocairo-1.0.0.dylib')
+#
+#     ctypes.CDLL(harfbuzz_path, mode=ctypes.RTLD_GLOBAL)
+#     ctypes.CDLL(pangocairo_path, mode=ctypes.RTLD_GLOBAL)
+#
+#     os.environ['DYLD_LIBRARY_PATH'] = base_path + ':' + os.environ.get('DYLD_LIBRARY_PATH', '')
 
-    ctypes.CDLL(harfbuzz_path, mode=ctypes.RTLD_GLOBAL)
-    ctypes.CDLL(pangocairo_path, mode=ctypes.RTLD_GLOBAL)
-
-    os.environ['DYLD_LIBRARY_PATH'] = base_path + ':' + os.environ.get('DYLD_LIBRARY_PATH', '')
-
-# load_libraries()
+load_libraries()
 
 def resource_path(relative_path):
     """ Get absolute path to resource, works for dev and for PyInstaller """
