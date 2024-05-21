@@ -15,6 +15,7 @@ pillow = "^10.3.0"
 pycairo = "^1.26.0"
 wand = "^0.6.13"
 appdirs = "^1.4.4"
+rich = "^13.7.1"
 
 [tool.poetry.group.dev.dependencies]
 devtools = "^0.12.2"

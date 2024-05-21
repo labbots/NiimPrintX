@@ -1,10 +1,10 @@
 import asyncio
 import click
 from PIL import Image
-from bluetooth import find_device
-from printer import PrinterClient, InfoEnum
-from logger_config import setup_logger, get_logger, logger_enable
-from helper import print_info, print_error, print_success
+from NiimPrintX.nimmy.bluetooth import find_device
+from NiimPrintX.nimmy.printer import PrinterClient, InfoEnum
+from NiimPrintX.nimmy.logger_config import setup_logger, get_logger, logger_enable
+from NiimPrintX.nimmy.helper import print_info, print_error, print_success
 
 from devtools import debug
 
@@ -133,7 +133,8 @@ async def _info(model):
         await printer.disconnect()
     except Exception as e:
         logger.debug(f"{e}")
-        await printer.disconnect()
+        print_error(e)
+        #await printer.disconnect()
 
 
 cli = click.CommandCollection(sources=[niimbot_cli])
