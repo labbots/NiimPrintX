@@ -17,7 +17,7 @@ class TextOperation:
     # Function to add text to canvas and make it draggable
     def create_text_image(self, font_props, text):
         with WandDrawing() as draw:
-            draw.font = font_props["font_name"]
+            # draw.font = font_props["font_name"]
             draw.font_family = font_props["family"]
             draw.font_size = font_props["size"]
             if font_props["slant"] == 'italic':
@@ -42,7 +42,7 @@ class TextOperation:
                 img.format = 'png'
                 img.alpha_channel = 'activate'  # Ensure alpha channel is active
                 img_blob = img.make_blob('png32')  # Use 'png32' for RGBA
-
+                # img.save(filename="test.png")
                 # Convert to format displayable in Tkinter
                 tk_image = tk.PhotoImage(data=img_blob)
                 return tk_image
@@ -91,7 +91,7 @@ class TextOperation:
         self.parent.content_entry.insert(0, text)
 
         self.parent.font_family_dropdown.set(font_prop["family"])
-        self.parent.font_dropdown.set(font_prop["font"])
+        # self.parent.font_dropdown.set(font_prop["font"])
         self.parent.size_var.set(font_prop["size"])
         self.parent.kerning_var.set(font_prop["kerning"])
 

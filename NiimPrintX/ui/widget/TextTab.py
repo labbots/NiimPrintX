@@ -26,36 +26,38 @@ class TextTab:
         self.content_entry.grid(row=0, column=1, sticky='ew', padx=5)
         self.content_entry.insert(0, "Text")
 
-        self.sample_text_label = tk.Label(self.frame, text="Sample Text", font=('Helvetica', 14), bg=default_bg)
+        self.sample_text_label = tk.Label(self.frame, text="Sample Text", font=('Arial', 14), bg=default_bg)
         self.sample_text_label.grid(row=0, column=2, sticky='w', columnspan=3)
 
         tk.Label(self.frame, text="Font Family", bg=default_bg).grid(row=1, column=0, sticky='w')
         self.font_family_dropdown = ttk.Combobox(self.frame, values=list(self.fonts.keys()))
         self.font_family_dropdown.grid(row=1, column=1, sticky='ew', padx=5)
-        self.font_family_dropdown.set("Helvetica")
-        self.font_family_dropdown.bind("<<ComboboxSelected>>",
-                                       self.update_font_list)
-
-        tk.Label(self.frame, text="Font", bg=default_bg).grid(row=1, column=2, sticky='w')
-        self.font_dropdown = ttk.Combobox(self.frame, state="readonly")
-        self.font_dropdown.grid(row=1, column=3, sticky='ew', padx=5)
+        self.font_family_dropdown.set("Arial")
         widget_name = "font_dropdown"
-        self.font_dropdown.bind("<<ComboboxSelected>>",
-                                lambda event, w=widget_name: self.update_text_properties(event, w))
+        self.font_family_dropdown.bind("<<ComboboxSelected>>",
+                                       lambda event, w=widget_name: self.update_text_properties(event, w))
+                                       # self.update_font_list)
+
+        # tk.Label(self.frame, text="Font", bg=default_bg).grid(row=1, column=2, sticky='w')
+        # self.font_dropdown = ttk.Combobox(self.frame, state="readonly")
+        # self.font_dropdown.grid(row=1, column=3, sticky='ew', padx=5)
+        # widget_name = "font_dropdown"
+        # self.font_dropdown.bind("<<ComboboxSelected>>",
+        #                         lambda event, w=widget_name: self.update_text_properties(event, w))
         self.update_font_list()
 
         self.bold_var = tk.BooleanVar()
         bold_button = tk.Checkbutton(self.frame, text="Bold", variable=self.bold_var, bg=default_bg,
                                      command=self.update_text_properties)
-        bold_button.grid(row=1, column=4, sticky='w')
+        bold_button.grid(row=1, column=2, sticky='w')
         self.italic_var = tk.BooleanVar()
         italic_button = tk.Checkbutton(self.frame, text="Italic", variable=self.italic_var, bg=default_bg,
                                        command=self.update_text_properties)
-        italic_button.grid(row=1, column=5, sticky='w')
+        italic_button.grid(row=1, column=3, sticky='w')
         self.underline_var = tk.BooleanVar()
         underline_button = tk.Checkbutton(self.frame, text="Underline", variable=self.underline_var, bg=default_bg,
                                           command=self.update_text_properties)
-        underline_button.grid(row=1, column=6, sticky='w')
+        underline_button.grid(row=1, column=4, sticky='w')
 
         tk.Label(self.frame, text="Font Size", bg=default_bg).grid(row=2, column=0, sticky='w')
         self.size_var = tk.IntVar()
@@ -86,8 +88,8 @@ class TextTab:
 
     def update_font_list(self, event=None):
         font_family = self.font_family_dropdown.get()
-        self.font_dropdown['values'] = list(self.fonts[font_family]["fonts"].keys())
-        self.font_dropdown.current(0)
+        # self.font_dropdown['values'] = list(self.fonts[font_family]["fonts"].keys())
+        # self.font_dropdown.current(0)
 
         content = self.content_entry.get()
         label_font = tk_font.Font(family=font_family, size=14)
@@ -100,7 +102,7 @@ class TextTab:
         label_font = tk_font.Font(family=font_props['family'], size=14, weight=font_props['weight'],
                                   slant=font_props['slant'])
         self.sample_text_label.config(font=label_font,
-                                      text=f"{content} in {font_props['font_name'].replace('-', ' ')}")
+                                      text=f"{content} in {font_props['family'].replace('-', ' ')}")
         if self.config.current_selected:
             # self.config.canvas.itemconfig(self.config.current_selected, font=font_obj)
             # self.config.text_items[self.config.current_selected]['font'] = font_obj
@@ -114,46 +116,46 @@ class TextTab:
 
     def get_font_properties(self):
         family = self.font_family_dropdown.get()
-        font = self.font_dropdown.get()
+        # font = self.font_dropdown.get()
         size = int(self.font_size_dropdown.get())
         kerning = float(self.font_kerning_dropdown.get())
         weight = 'bold' if self.bold_var.get() else 'normal'
         slant = 'italic' if self.italic_var.get() else 'roman'
         underline = self.underline_var.get()
-        font_base_name = self.fonts[family]["fonts"][font]['name']
+        # font_base_name = self.fonts[family]["fonts"][font]['name']
 
-        font_style = None
-        if weight == 'bold' and "Bold" in self.fonts[family]["fonts"][font]["variants"]:
-            font_style = "Bold"
-
-        if slant == 'italic':
-            if "Italic" in self.fonts[family]["fonts"][font]["variants"]:
-                font_style = "Italic"
-            elif "Oblique" in self.fonts[family]["fonts"][font]["variants"]:
-                font_style = "Oblique"
-        if weight == 'bold' and slant == 'italic':
-            if "Bold-Italic" in self.fonts[family]["fonts"][font]["variants"]:
-                font_style = "Bold-Italic"
-
-        if font_style:
-            font_name = f"{font_base_name}-{font_style}"
-        else:
-            if self.fonts[family]["fonts"][font]["main"]:
-                font_name = font_base_name
-            elif "Regular" in self.fonts[family]["fonts"][font]["variants"]:
-                font_name = f"{font_base_name}-Regular"
-            else:
-                font_name = f"{font_base_name}-{self.fonts[family]['fonts'][font]['variants'][0]}"
+        # font_style = None
+        # if weight == 'bold' and "Bold" in self.fonts[family]["fonts"][font]["variants"]:
+        #     font_style = "Bold"
+        #
+        # if slant == 'italic':
+        #     if "Italic" in self.fonts[family]["fonts"][font]["variants"]:
+        #         font_style = "Italic"
+        #     elif "Oblique" in self.fonts[family]["fonts"][font]["variants"]:
+        #         font_style = "Oblique"
+        # if weight == 'bold' and slant == 'italic':
+        #     if "Bold-Italic" in self.fonts[family]["fonts"][font]["variants"]:
+        #         font_style = "Bold-Italic"
+        #
+        # if font_style:
+        #     font_name = f"{font_base_name}-{font_style}"
+        # else:
+        #     if self.fonts[family]["fonts"][font]["main"]:
+        #         font_name = font_base_name
+        #     elif "Regular" in self.fonts[family]["fonts"][font]["variants"]:
+        #         font_name = f"{font_base_name}-Regular"
+        #     else:
+        #         font_name = f"{font_base_name}-{self.fonts[family]['fonts'][font]['variants'][0]}"
 
         font_props = {
             "family": family,
-            "font": font,
+            # "font": font,
             "size": size,
             "kerning": kerning,
             "weight": weight,
             "slant": slant,
             "underline": underline,
-            "font_name": font_name
+            # "font_name": font_name
         }
         font_obj = tk_font.Font(family=family, size=size, weight=weight, slant=slant, underline=underline)
 
