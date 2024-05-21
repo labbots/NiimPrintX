@@ -1,5 +1,5 @@
 # NiimPrintX
-
+![](docs/assets/NiimPrintX.gif)
 ```shell
  brew install libffi
  brew install glib gobject-introspection cairo pango pkg-config
