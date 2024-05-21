@@ -7,7 +7,7 @@ from tkinter import filedialog, font
 import pickle
 from PIL import Image, ImageTk
 
-
+from devtools import debug
 class FileMenu:
     def __init__(self, root, parent, config):
         self.root = root
@@ -35,11 +35,19 @@ class FileMenu:
             "image": {}
         }
         if self.config.text_items:
+            debug(self.config.text_items)
             for text_id, properties in self.config.text_items.items():
+                font_image = ImageTk.getimage(properties["font_image"])
+                with io.BytesIO() as buffer:
+                    font_image.save(buffer, format="PNG")
+                    buffer.seek(0)
+                    font_img_str = base64.b64encode(buffer.getvalue()).decode("utf-8")
+
                 item_data = {
-                    "text": self.config.canvas.itemcget(text_id, "text"),
+                    "content": properties["content"],
                     "coords": self.config.canvas.coords(text_id),
                     "font_props": properties['font_props'],
+                    "font_image": font_img_str
                 }
                 data['text'][str(text_id)] = item_data
 
@@ -91,17 +99,18 @@ class FileMenu:
                     self.load_image(item_data)
 
     def load_text(self, data):
-        font_obj = font.Font(family=data["font_props"]["family"], size=data["font_props"]["size"],
-                             weight=data["font_props"]["weight"], slant=data["font_props"]["slant"],
-                             underline=data["font_props"]["underline"])
-
-        text_id = self.config.canvas.create_text(data['coords'][0], data['coords'][1], text=data['text'], font=font_obj)
+        font_img_data = base64.b64decode(data["font_image"])
+        font_image = Image.open(io.BytesIO(font_img_data))
+        font_img_tk = ImageTk.PhotoImage(font_image)
+        text_id = self.config.canvas.create_image(data['coords'][0], data['coords'][1],
+                                                   image=font_img_tk, anchor="nw")
         self.config.canvas.tag_bind(text_id, "<Button-1>",
                                     lambda event, tid=text_id: self.root.text_tab.text_op.select_text(event, tid))
 
         self.config.text_items[text_id] = {
-            "font": font_obj,
+            "font_image": font_img_tk,
             "font_props": data["font_props"],
+            "content": data["content"],
             "handle": None,
             "bbox": None
         }
