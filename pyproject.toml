@@ -2,7 +2,7 @@
 name = "niimprintx"
 version = "0.1.0"
 description = "App to print labels using NiimBot printer"
-authors = ["Your Name <you@example.com>"]
+authors = ["Labbots <labbots@gmail.com>"]
 license = "GNU GPLv3"
 readme = "README.md"
 
