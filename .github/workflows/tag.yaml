@@ -7,7 +7,7 @@ on:
 
 jobs:
   build:
-    runs-on: macos-latest
+    runs-on: macos-13
 
     steps:
       - name: Extract Tag
@@ -25,11 +25,6 @@ jobs:
         with:
           cache: 'poetry'
 
-#      - name: Install Poetry
-#        run: |
-#          curl -sSL https://install.python-poetry.org | python3 -
-#          echo "$HOME/.local/bin" >> $GITHUB_PATH
-
       - name: Install dependencies
         run: poetry install
 
@@ -42,11 +37,11 @@ jobs:
       - name: Create DMG package
         run: ./.github/workflows/mac-dmg-builder.sh "${{ steps.get_tag_name.outputs.VERSION }}"
 
-      - name: Upload DMG package
-        uses: actions/upload-artifact@v4
-        with:
-          name: NiimPrintX-Installer-${{ steps.get_tag_name.outputs.VERSION }}
-          path: dist/NiimPrintX-Installer-${{ steps.get_tag_name.outputs.VERSION }}-MacOSX.dmg
+#      - name: Upload DMG package
+#        uses: actions/upload-artifact@v4
+#        with:
+#          name: NiimPrintX-Installer-${{ steps.get_tag_name.outputs.VERSION }}
+#          path: dist/NiimPrintX-Installer-${{ steps.get_tag_name.outputs.VERSION }}-MacOSX.dmg
 
       - name: Create GitHub Release
         id: create_release
