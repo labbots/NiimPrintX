@@ -40,7 +40,7 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: NiimPrintX-Installer-${{ steps.get_tag_name.outputs.VERSION }}
-          path: dist/NiimPrintX-Installer-${{ steps.get_tag_name.outputs.VERSION }}.dmg
+          path: dist/NiimPrintX-Installer-${{ steps.get_tag_name.outputs.VERSION }}-MacOSX.dmg
 
       - name: Create GitHub Release
         id: create_release
@@ -48,6 +48,4 @@ jobs:
         with:
           files: dist/NiimPrintX-Installer-${{ steps.get_tag_name.outputs.VERSION }}-MacOSX.dmg
           generate_release_notes: true
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
