@@ -4,6 +4,7 @@ import tkinter as tk
 from tkinter import ttk
 from tkinter import filedialog
 from PIL import Image, ImageTk
+import PIL
 # import cairocffi
 # cairocffi.install_as_pycairo()
 import cairo
@@ -196,7 +197,7 @@ class PrintOption:
     def print_label(self, image, density, quantity):
         self.print_button.config(state=tk.DISABLED)
         self.config.print_job = True
-        image = image.rotate(-int(90), expand=True)
+        image = image.rotate(-int(90),PIL.Image.NEAREST, expand=True)
         future = asyncio.run_coroutine_threadsafe(
             self.print_op.print(image, density, quantity), self.root.async_loop
         )

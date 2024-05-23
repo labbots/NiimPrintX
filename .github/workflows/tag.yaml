@@ -1,0 +1,53 @@
+name: Build and Package NiimPrintX App
+
+on:
+  push:
+    tags:
+      - 'v*'
+
+jobs:
+  build:
+    runs-on: macos-latest
+
+    steps:
+      - name: Extract Tag
+        id: get_tag_name
+        run: echo ::set-output name=VERSION::${GITHUB_REF/refs\/tags\//}
+      - name: Checkout source code
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+
+      - name: Install Poetry
+        run: |
+          curl -sSL https://install.python-poetry.org | python3 -
+          echo "::add-path::$HOME/.local/bin"
+
+      - name: Install dependencies
+        run: poetry install
+
+      - name: Install ImageMagick & create-dmg
+        run: brew install imagemagick create-dmg
+
+      - name: Package application with PyInstaller
+        run: poetry run pyinstaller spec_files/ui_app/NiimPrintX-mac.spec --noconfirm --clean
+
+      - name: Create DMG package
+        run: ./github/workflows/mac-dmg-builder.sh "${{ steps.get_tag_name.outputs.VERSION }}"
+
+      - name: Upload DMG package
+        uses: actions/upload-artifact@v4
+        with:
+          name: NiimPrintX-Installer-${{ steps.get_tag_name.outputs.VERSION }}
+          path: dist/NiimPrintX-Installer-${{ steps.get_tag_name.outputs.VERSION }}.dmg
+
+      - name: Create GitHub Release
+        id: create_release
+        uses: softprops/action-gh-release@v2
+        with:
+          files: dist/NiimPrintX-Installer-${{ steps.get_tag_name.outputs.VERSION }}-MacOSX.dmg
+          generate_release_notes: true
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+

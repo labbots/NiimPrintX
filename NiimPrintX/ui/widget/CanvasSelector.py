@@ -57,6 +57,9 @@ class CanvasSelector:
         self.bounding_box_width = self.mm_to_pixels(label_width_mm)
         self.bounding_box_height = self.mm_to_pixels(label_height_mm)
 
+        self.print_area_width = self.bounding_box_width - self.mm_to_pixels(2)
+        self.print_area_height = self.bounding_box_height - self.mm_to_pixels(4)
+
         # Set the new canvas dimensions with padding
         padding = 150  # 50 pixels padding on each side
         self.canvas_width = self.bounding_box_width + padding
@@ -82,6 +85,18 @@ class CanvasSelector:
             y_center - self.bounding_box_height // 2,
             x_center + self.bounding_box_width // 2,
             y_center + self.bounding_box_height // 2,
+            outline="blue",
+            width=1,
+            # dash=(4, 4),
+            fill="white",
+            tags="label_box"
+        )
+
+        self.config.print_area_box = self.config.canvas.create_rectangle(
+            x_center - self.print_area_width // 2,
+            y_center - self.print_area_height // 2,
+            x_center + self.print_area_width // 2,
+            y_center + self.print_area_height // 2,
             outline="red",
             width=1,
             dash=(4, 4),
