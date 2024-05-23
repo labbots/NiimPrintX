@@ -13,18 +13,22 @@ jobs:
       - name: Extract Tag
         id: get_tag_name
         run: echo ::set-output name=VERSION::${GITHUB_REF/refs\/tags\//}
+
       - name: Checkout source code
         uses: actions/checkout@v4
+
+      - name: Install poetry
+        run: pipx install poetry
 
       - name: Set up Python
         uses: actions/setup-python@v5
         with:
           cache: 'poetry'
 
-      - name: Install Poetry
-        run: |
-          curl -sSL https://install.python-poetry.org | python3 -
-          echo "$HOME/.local/bin" >> $GITHUB_PATH
+#      - name: Install Poetry
+#        run: |
+#          curl -sSL https://install.python-poetry.org | python3 -
+#          echo "$HOME/.local/bin" >> $GITHUB_PATH
 
       - name: Install dependencies
         run: poetry install
