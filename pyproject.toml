@@ -5,6 +5,8 @@ description = "App to print labels using NiimBot printer"
 authors = ["Labbots <labbots@gmail.com>"]
 license = "GNU GPLv3"
 readme = "README.md"
+packages = [{include = "*", from="NiimPrintX"}]
+
 
 [tool.poetry.dependencies]
 python = ">=3.12,<3.13"
