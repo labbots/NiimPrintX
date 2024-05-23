@@ -1,8 +1,14 @@
 # -*- mode: python ; coding: utf-8 -*-
+import os
 
+current_path = os.getcwd()
+if os.path.basename(current_path) == "ui_app":
+    src_path = os.path.join(current_path, '..', '..', 'NiimPrintX', 'cli')
+if os.path.basename(current_path) == "NiimPrintX":
+    src_path = os.path.join(current_path, 'NiimPrintX', 'cli')
 
 a = Analysis(
-    ['NiimPrintX/cli/__main__.py'],
+    [os.path.join(src_path, '__main__.py')],
     pathex=[],
     binaries=[],
     datas=[],

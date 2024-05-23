@@ -12,7 +12,7 @@ jobs:
     steps:
       - name: Extract Tag
         id: get_tag_name
-        run: echo ::set-output name=VERSION::${GITHUB_REF/refs\/tags\//}
+        run: echo "name=VERSION::${GITHUB_REF/refs\/tags\//}" >> $GITHUB_OUTPUT
 
       - name: Checkout source code
         uses: actions/checkout@v4
@@ -37,16 +37,28 @@ jobs:
       - name: Create DMG package
         run: ./.github/workflows/mac-dmg-builder.sh "${{ steps.get_tag_name.outputs.VERSION }}"
 
-#      - name: Upload DMG package
-#        uses: actions/upload-artifact@v4
-#        with:
-#          name: NiimPrintX-Installer-${{ steps.get_tag_name.outputs.VERSION }}
-#          path: dist/NiimPrintX-Installer-${{ steps.get_tag_name.outputs.VERSION }}-MacOSX.dmg
+      - name: Package CLI with PyInstaller
+        run: poetry run pyinstaller spec_files/cli_app/NiimPrintX-mac.spec --noconfirm --clean
 
-      - name: Create GitHub Release
-        id: create_release
-        uses: softprops/action-gh-release@v2
+      - name: Create CLI compressed file
+        run: cd dist && tar -czf NiimPrintX-CLI-${{ steps.get_tag_name.outputs.VERSION }}-MacOSX.tar.gz niimprintx
+
+      - name: Upload DMG package
+        uses: actions/upload-artifact@v4
         with:
-          files: dist/NiimPrintX-Installer-${{ steps.get_tag_name.outputs.VERSION }}-MacOSX.dmg
-          generate_release_notes: true
+          name: NiimPrintX-Installer-${{ steps.get_tag_name.outputs.VERSION }}-MacOSX.dmg
+          path: dist/NiimPrintX-Installer-${{ steps.get_tag_name.outputs.VERSION }}-MacOSX.dmg
+
+      - name: Upload CLI package
+        uses: actions/upload-artifact@v4
+        with:
+          name: NiimPrintX-CLI-${{ steps.get_tag_name.outputs.VERSION }}-MacOSX.tar.gz
+          path: dist/NiimPrintX-CLI-${{ steps.get_tag_name.outputs.VERSION }}-MacOSX.tar.gz
+
+#      - name: Create GitHub Release
+#        id: create_release
+#        uses: softprops/action-gh-release@v2
+#        with:
+#          files: dist/NiimPrintX-Installer-${{ steps.get_tag_name.outputs.VERSION }}-MacOSX.dmg
+#          generate_release_notes: true
 
