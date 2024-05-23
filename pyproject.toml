@@ -1,5 +1,5 @@
 [tool.poetry]
-name = "niimprintx"
+name = "NiimPrintX"
 version = "0.1.0"
 description = "App to print labels using NiimBot printer"
 authors = ["Labbots <labbots@gmail.com>"]
