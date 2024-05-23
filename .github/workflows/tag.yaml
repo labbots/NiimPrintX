@@ -34,7 +34,7 @@ jobs:
         run: poetry run pyinstaller spec_files/ui_app/NiimPrintX-mac.spec --noconfirm --clean
 
       - name: Create DMG package
-        run: ./github/workflows/mac-dmg-builder.sh "${{ steps.get_tag_name.outputs.VERSION }}"
+        run: ./.github/workflows/mac-dmg-builder.sh "${{ steps.get_tag_name.outputs.VERSION }}"
 
       - name: Upload DMG package
         uses: actions/upload-artifact@v4
