@@ -39,7 +39,7 @@ jobs:
           python3 -c 'import tkinter; tcl = tkinter.Tcl(); print(tcl.call("info", "patchlevel"))'
 
       - name: Install ImageMagick & create-dmg
-        run: brew install imagemagick create-dmg
+        run: brew install imagemagick create-dmg tcl-tk
 
       - name: Package application with PyInstaller
         run: poetry run pyinstaller spec_files/ui_app/NiimPrintX-mac.spec --noconfirm --clean
@@ -66,10 +66,5 @@ jobs:
           name: NiimPrintX-CLI-${{ steps.get_tag_name.outputs.VERSION }}-MacOSX-${{ steps.get_architecture.outputs.ARCH }}.tar.gz
           path: dist/NiimPrintX-CLI-${{ steps.get_tag_name.outputs.VERSION }}-MacOSX-${{ steps.get_architecture.outputs.ARCH }}.tar.gz
           retention-days: 1
-#      - name: Create GitHub Release
-#        id: create_release
-#        uses: softprops/action-gh-release@v2
-#        with:
-#          files: dist/NiimPrintX-Installer-${{ steps.get_tag_name.outputs.VERSION }}-MacOSX.dmg
-#          generate_release_notes: true
+
 
