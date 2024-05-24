@@ -29,5 +29,6 @@ create-dmg \
   --icon "${APP_NAME}.app" 200 190 \
   --hide-extension "${APP_NAME}.app" \
   --app-drop-link 600 185 \
+  --no-internet-enable \
   "${DMG_FILE_NAME}" \
   "${SOURCE_FOLDER_PATH}"
