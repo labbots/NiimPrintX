@@ -34,6 +34,10 @@ jobs:
       - name: Install dependencies
         run: poetry install
 
+      - name: Show TKinter version
+        run: |
+          python3 -c 'import tkinter; tcl = tkinter.Tcl(); print(tcl.call("info", "patchlevel"))'
+
       - name: Install ImageMagick & create-dmg
         run: brew install imagemagick create-dmg
 
