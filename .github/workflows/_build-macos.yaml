@@ -1,0 +1,70 @@
+name: "MacOS"
+
+on:
+  workflow_call:
+    inputs:
+      os:
+        type: string
+
+jobs:
+  macos:
+    name: ${{ inputs.os }}
+    runs-on: ${{ inputs.os }}
+
+    steps:
+      - name: Extract Tag
+        id: get_tag_name
+        run: echo "VERSION=${GITHUB_REF/refs\/tags\//}" >> $GITHUB_OUTPUT
+
+      - name: Extract Architecture
+        id: get_architecture
+        run: echo "ARCH=$(uname -m)" >> $GITHUB_OUTPUT
+
+      - name: Checkout source code
+        uses: actions/checkout@v4
+
+      - name: Install poetry
+        run: pipx install poetry
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          cache: 'poetry'
+
+      - name: Install dependencies
+        run: poetry install
+
+      - name: Install ImageMagick & create-dmg
+        run: brew install imagemagick create-dmg
+
+      - name: Package application with PyInstaller
+        run: poetry run pyinstaller spec_files/ui_app/NiimPrintX-mac.spec --noconfirm --clean
+
+      - name: Create DMG package
+        run: ./.github/workflows/mac-dmg-builder.sh "${{ steps.get_tag_name.outputs.VERSION }}"
+
+      - name: Package CLI with PyInstaller
+        run: poetry run pyinstaller spec_files/cli_app/NiimPrintX-mac.spec --noconfirm --clean
+
+      - name: Create CLI compressed file
+        run: cd dist && tar -czf NiimPrintX-CLI-${{ steps.get_tag_name.outputs.VERSION }}-MacOSX.tar.gz niimprintx
+
+      - name: Upload DMG package
+        uses: actions/upload-artifact@v4
+        with:
+          name: NiimPrintX-Installer-${{ steps.get_tag_name.outputs.VERSION }}-MacOSX-${{ steps.get_architecture.outputs.ARCH }}.dmg
+          path: dist/NiimPrintX-Installer-${{ steps.get_tag_name.outputs.VERSION }}-MacOSX.dmg
+          retention-days: 1
+      - name: Upload CLI package
+        uses: actions/upload-artifact@v4
+        with:
+          name: NiimPrintX-CLI-${{ steps.get_tag_name.outputs.VERSION }}-MacOSX-${{ steps.get_architecture.outputs.ARCH }}.tar.gz
+          path: dist/NiimPrintX-CLI-${{ steps.get_tag_name.outputs.VERSION }}-MacOSX.tar.gz
+          retention-days: 1
+#      - name: Create GitHub Release
+#        id: create_release
+#        uses: softprops/action-gh-release@v2
+#        with:
+#          files: dist/NiimPrintX-Installer-${{ steps.get_tag_name.outputs.VERSION }}-MacOSX.dmg
+#          generate_release_notes: true
+
