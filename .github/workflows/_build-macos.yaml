@@ -41,26 +41,26 @@ jobs:
         run: poetry run pyinstaller spec_files/ui_app/NiimPrintX-mac.spec --noconfirm --clean
 
       - name: Create DMG package
-        run: ./.github/workflows/mac-dmg-builder.sh "${{ steps.get_tag_name.outputs.VERSION }}"
+        run: ./.github/workflows/mac-dmg-builder.sh "${{ steps.get_tag_name.outputs.VERSION }}" "${{ steps.get_architecture.outputs.ARCH }}"
 
       - name: Package CLI with PyInstaller
         run: poetry run pyinstaller spec_files/cli_app/NiimPrintX-mac.spec --noconfirm --clean
 
       - name: Create CLI compressed file
-        run: cd dist && tar -czf NiimPrintX-CLI-${{ steps.get_tag_name.outputs.VERSION }}-MacOSX.tar.gz niimprintx
+        run: cd dist && tar -czf NiimPrintX-CLI-${{ steps.get_tag_name.outputs.VERSION }}-MacOSX-${{ steps.get_architecture.outputs.ARCH }}.tar.gz niimprintx
 
       - name: Upload DMG package
         uses: actions/upload-artifact@v4
         with:
           name: NiimPrintX-Installer-${{ steps.get_tag_name.outputs.VERSION }}-MacOSX-${{ steps.get_architecture.outputs.ARCH }}.dmg
-          path: dist/NiimPrintX-Installer-${{ steps.get_tag_name.outputs.VERSION }}-MacOSX.dmg
+          path: dist/NiimPrintX-Installer-${{ steps.get_tag_name.outputs.VERSION }}-MacOSX-${{ steps.get_architecture.outputs.ARCH }}.dmg
           retention-days: 1
 
       - name: Upload CLI package
         uses: actions/upload-artifact@v4
         with:
           name: NiimPrintX-CLI-${{ steps.get_tag_name.outputs.VERSION }}-MacOSX-${{ steps.get_architecture.outputs.ARCH }}.tar.gz
-          path: dist/NiimPrintX-CLI-${{ steps.get_tag_name.outputs.VERSION }}-MacOSX.tar.gz
+          path: dist/NiimPrintX-CLI-${{ steps.get_tag_name.outputs.VERSION }}-MacOSX-${{ steps.get_architecture.outputs.ARCH }}.tar.gz
           retention-days: 1
 #      - name: Create GitHub Release
 #        id: create_release

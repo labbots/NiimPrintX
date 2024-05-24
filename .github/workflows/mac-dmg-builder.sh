@@ -1,8 +1,9 @@
 #!/usr/bin/env bash
 
 VERSION="${1}"
+ARCH="${2}"
 APP_NAME="NiimPrintX"
-DMG_FILE_NAME="${APP_NAME}-Installer-${VERSION}-MacOSX.dmg"
+DMG_FILE_NAME="${APP_NAME}-Installer-${VERSION}-MacOSX-${ARCH}.dmg"
 VOLUME_NAME="${APP_NAME} Installer"
 SOURCE_FOLDER_PATH="NiimprintX/"
 DIST_FOLDER="dist"
@@ -22,7 +23,7 @@ fi
 echo killing...; sudo pkill -9 XProtect >/dev/null || true;
 echo waiting...; while pgrep XProtect; do sleep 3; done;
 # Create the DMG
-create-dmg \
+sudo create-dmg \
   --volname "${VOLUME_NAME}" \
   --background "../assets/images/niimprintx-background.png" \
   --window-pos 200 120 \
