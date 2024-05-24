@@ -39,7 +39,7 @@ jobs:
           python3 -c 'import tkinter; tcl = tkinter.Tcl(); print(tcl.call("info", "patchlevel"))'
 
       - name: Install ImageMagick & create-dmg
-        run: brew install imagemagick create-dmg tcl-tk
+        run: brew install imagemagick create-dmg tcl-tk python-tk
 
       - name: Package application with PyInstaller
         run: poetry run pyinstaller spec_files/ui_app/NiimPrintX-mac.spec --noconfirm --clean
