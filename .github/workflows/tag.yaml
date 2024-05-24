@@ -13,3 +13,13 @@ jobs:
     uses: ./.github/workflows/_build-macos.yaml
     with:
       os: ${{ matrix.os }}
+  release:
+    steps:
+      - name: Download artifacts
+        uses: actions/download-artifact@v4
+        with:
+          path: release
+          merge-multiple: true
+
+      - name: Display structure of downloaded files
+        run: ls -R release
