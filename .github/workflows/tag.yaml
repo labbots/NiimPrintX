@@ -14,6 +14,8 @@ jobs:
     with:
       os: ${{ matrix.os }}
   release:
+    name: "Release"
+    runs-on: ubuntu-latest
     steps:
       - name: Download artifacts
         uses: actions/download-artifact@v4
