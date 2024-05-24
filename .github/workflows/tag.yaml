@@ -13,9 +13,13 @@ jobs:
     uses: ./.github/workflows/_build-macos.yaml
     with:
       os: ${{ matrix.os }}
+
   release:
     name: "Release"
     runs-on: ubuntu-latest
+    needs:
+      - macos
+    if: always() && !cancelled() && !contains(needs.*.result, 'failure')
     steps:
       - name: Download artifacts
         uses: actions/download-artifact@v4
