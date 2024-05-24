@@ -11,3 +11,5 @@ jobs:
       matrix:
         os: [ macos-13, macos-latest ]
     uses: ./.github/workflows/_build-macos.yaml
+    with:
+      os: ${{ matrix.os }}
