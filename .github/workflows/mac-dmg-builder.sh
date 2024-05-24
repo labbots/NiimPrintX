@@ -19,6 +19,8 @@ fi
 # Since create-dmg does not clobber, be sure to delete previous DMG
 [[ -f "${DMG_FILE_NAME}" ]] && rm "${DMG_FILE_NAME}"
 
+echo killing...; sudo pkill -9 XProtect >/dev/null || true;
+echo waiting...; while pgrep XProtect; do sleep 3; done;
 # Create the DMG
 create-dmg \
   --volname "${VOLUME_NAME}" \
