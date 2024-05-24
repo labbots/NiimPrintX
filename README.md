@@ -1,4 +1,11 @@
-# NiimPrintX
+<h1 align="center">NiimPrintX</h1>
+<p align="center">
+<a href="https://github.com/labbots/NiimPrintX/releases"><img src="https://img.shields.io/github/release/labbots/NiimPrintX.svg?style=for-the-badge" alt="Latest Release"></a>
+<img alt="GitHub Actions Workflow Status" src="https://img.shields.io/github/actions/workflow/status/labbots/NiimPrintX/tag.yaml?style=for-the-badge">
+<img alt="GitHub commits since latest release" src="https://img.shields.io/github/commits-since/labbots/NiimPrintX/latest?style=for-the-badge">
+</p>
+
+
 ![NiimPrintX](docs/assets/NiimPrintX.gif)
 
 NiimPrintX is a Python library designed to seamlessly interface with NiimBot label printers via Bluetooth. 
