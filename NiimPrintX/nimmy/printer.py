@@ -8,10 +8,10 @@ from .bluetooth import BLETransport
 from .logger_config import get_logger
 from .packet import NiimbotPacket, packet_to_int
 
-
 from devtools import debug
 
 logger = get_logger()
+
 
 class InfoEnum(enum.IntEnum):
     DENSITY = 1
@@ -125,7 +125,8 @@ class PrinterClient:
         self.notification_data = data
         self.notification_event.set()
 
-    async def print_image(self, image: Image, density: int = 3, quantity: int = 1):
+    async def print_image(self, image: Image, density: int = 3, quantity: int = 1, vertical_offset= 0,
+                          horizontal_offset = 0):
         await self.set_label_density(density)
         await self.set_label_type(1)
         await self.start_print()
@@ -133,7 +134,7 @@ class PrinterClient:
         await self.set_dimension(image.height, image.width)
         await self.set_quantity(quantity)
 
-        for pkt in self._encode_image(image):
+        for pkt in self._encode_image(image, vertical_offset, horizontal_offset):
             # Send each line and wait for a response or status check
             await self.write_raw(pkt)
             # Adding a short delay or status check here can help manage buffer issues
@@ -150,8 +151,19 @@ class PrinterClient:
 
         await self.end_print()
 
-    def _encode_image(self, image: Image):
+    def _encode_image(self, image: Image, vertical_offset=0, horizontal_offset=0):
+        # Convert the image to monochrome
         img = ImageOps.invert(image.convert("L")).convert("1")
+
+        # Apply horizontal offset
+        if horizontal_offset > 0:
+            img = ImageOps.expand(img, border=(horizontal_offset, 0, 0, 0), fill=1)
+        else:
+            img = img.crop((-horizontal_offset, 0, img.width, img.height))
+
+        # Add vertical padding for vertical offset
+        img = ImageOps.expand(img, border=(0, vertical_offset, 0, 0), fill=1)
+
         for y in range(img.height):
             line_data = [img.getpixel((x, y)) for x in range(img.width)]
             line_data = "".join("0" if pix == 0 else "1" for pix in line_data)

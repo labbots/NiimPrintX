@@ -99,3 +99,4 @@ dmypy.json
 .pyre/
 .idea
 data/
+nimmy.log

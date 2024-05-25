@@ -53,6 +53,20 @@ def niimbot_cli(ctx, verbose):
     help="Print quantity",
 )
 @click.option(
+    "--vo",
+    "vertical_offset",
+    default=0,
+    show_default=True,
+    help="Vertical offset in pixels",
+)
+@click.option(
+    "--ho",
+    "horizontal_offset",
+    default=0,
+    show_default=True,
+    help="Horizontal offset in pixels",
+)
+@click.option(
     "-r",
     "--rotate",
     type=click.Choice(["0", "90", "180", "270"]),
@@ -67,7 +81,7 @@ def niimbot_cli(ctx, verbose):
     required=True,
     help="Image path",
 )
-def print_command(model, density, rotate, image, quantity):
+def print_command(model, density, rotate, image, quantity, vertical_offset, horizontal_offset):
     logger.info(f"Niimbot Printing Start")
 
     if model in ("b1", "b18", "b21"):
@@ -84,19 +98,20 @@ def print_command(model, density, rotate, image, quantity):
             # PIL library rotates counterclockwise, so we need to multiply by -1
             image = image.rotate(-int(rotate), expand=True)
         assert image.width <= max_width_px, f"Image width too big for {model.upper()}"
-        asyncio.run(_print(model, density, image, quantity))
+        asyncio.run(_print(model, density, image, quantity, vertical_offset, horizontal_offset))
     except Exception as e:
         logger.info(f"{e}")
 
 
-async def _print(model, density, image, quantity):
+async def _print(model, density, image, quantity, vertical_offset, horizontal_offset):
     try:
         print_info("Starting print job")
         device = await find_device(model)
         printer = PrinterClient(device)
         if await printer.connect():
             print(f"Connected to {device.name}")
-        await printer.print_image(image, density=density, quantity=quantity)
+        await printer.print_image(image, density=density, quantity=quantity, vertical_offset=vertical_offset,
+                                  horizontal_offset=horizontal_offset)
         print_success("Print job completed")
         await printer.disconnect()
     except Exception as e:
@@ -134,7 +149,7 @@ async def _info(model):
     except Exception as e:
         logger.debug(f"{e}")
         print_error(e)
-        #await printer.disconnect()
+        # await printer.disconnect()
 
 
 cli = click.CommandCollection(sources=[niimbot_cli])
