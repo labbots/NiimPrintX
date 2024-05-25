@@ -86,6 +86,8 @@ Options:
   -d, --density INTEGER RANGE     Print density  [default: 3; 1<=x<=5]
   -n, --quantity INTEGER          Print quantity  [default: 1]
   -r, --rotate [0|90|180|270]     Image rotation (clockwise)  [default: 0]
+  --vo INTEGER                    Vertical offset in pixels  [default: 0]
+  --ho INTEGER                    Horizontal offset in pixels  [default: 0]
   -i, --image PATH                Image path  [required]
   -h, --help                      Show this message and exit.
 ```
