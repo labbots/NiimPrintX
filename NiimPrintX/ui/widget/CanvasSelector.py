@@ -74,7 +74,7 @@ class CanvasSelector:
             self.config.frames["top_frame"], width=self.canvas_width, height=self.canvas_height,
             highlightthickness=0, bg="lightgray"
         )
-        self.config.canvas.pack(padx=20, pady=20)
+        self.config.canvas.pack(padx=0, pady=0)
 
         # Create a centered bounding box
         x_center = self.canvas_width // 2

@@ -5,13 +5,10 @@ from tkinter import ttk
 from tkinter import filedialog
 from PIL import Image, ImageTk
 import PIL
-# import cairocffi
-# cairocffi.install_as_pycairo()
 import cairo
 import tempfile
 
 from .PrinterOperation import PrinterOperation
-from NiimPrintX.nimmy.bluetooth import find_device
 
 from devtools import debug
 
@@ -102,11 +99,24 @@ class PrintOption:
             self.export_to_png(file_path)
             self.display_image_in_popup(file_path)
 
-    def export_to_png(self, output_filename):
+    def mm_to_pixels(self, mm):
+        inches = mm / 25.4
+        return int(inches * self.config.print_dpi)
+
+    def export_to_png(self, output_filename=None, horizontal_offset=0.0, vertical_offset=0.0):
         width = self.config.canvas.winfo_reqwidth()
         height = self.config.canvas.winfo_reqheight()
 
+        horizontal_offset_pixels = self.mm_to_pixels(horizontal_offset)
+        vertical_offset_pixels = self.mm_to_pixels(vertical_offset)
+
         x1, y1, x2, y2 = self.config.canvas.bbox(self.config.bounding_box)
+
+        x1 += horizontal_offset_pixels
+        y1 += vertical_offset_pixels
+        x2 += horizontal_offset_pixels
+        y2 += vertical_offset_pixels
+
         bbox_width = x2 - x1
         bbox_height = y2 - y1
 
@@ -144,7 +154,13 @@ class PrintOption:
         cropped_ctx = cairo.Context(cropped_surface)
         cropped_ctx.set_source_surface(surface, -x1, -y1)
         cropped_ctx.paint()
-        cropped_surface.write_to_png(output_filename)
+        if output_filename:
+            cropped_surface.write_to_png(output_filename)
+        else:
+            image_bytes = cropped_surface.get_data()
+            img = Image.frombuffer("RGBA", (int(bbox_width), int(bbox_height)), image_bytes, "raw", "BGRA", 0, 1)
+
+            return img
 
     def display_image_in_popup(self, filename):
         # Create a new Toplevel window
@@ -152,52 +168,106 @@ class PrintOption:
         popup.title("Preview Image")
 
         # Load the PNG image with PIL and convert to ImageTk
-        img = Image.open(filename)
-        img_tk = ImageTk.PhotoImage(img)
+        self.print_image = Image.open(filename)
+        img_tk = ImageTk.PhotoImage(self.print_image)
 
         # Create a Label to display the image
-        image_label = tk.Label(popup, image=img_tk)
-        image_label.image = img_tk  # Keep a reference to avoid garbage collection
-        image_label.pack(padx=10, pady=10)
+        self.image_label = tk.Label(popup, image=img_tk)
+        self.image_label.image = img_tk  # Keep a reference to avoid garbage collection
+        self.image_label.grid(row=0, column=0, columnspan=4, padx=10, pady=10)
 
         option_frame = tk.Frame(popup)
-        option_frame.pack(fill=tk.X, padx=20, pady=10)
+        option_frame.grid(row=1, column=0, columnspan=4, padx=20, pady=10, sticky="ew")
+
         self.print_density = tk.IntVar()
         self.print_density.set(3)
-        tk.Label(option_frame, text="Density").pack(side=tk.LEFT)
+        tk.Label(option_frame, text="Density").grid(row=0, column=0, padx=5, pady=5, sticky="e")
         density_slider = tk.Spinbox(option_frame,
                                     from_=1,
                                     to=self.config.label_sizes[self.config.device]['density'],
                                     textvariable=self.print_density,
                                     width=4
                                     )
-        density_slider.pack(side=tk.LEFT, padx=(10, 0))
+        density_slider.grid(row=0, column=1, padx=5, pady=5, sticky="w")
 
-        tk.Label(option_frame, text="Copies").pack(side=tk.LEFT, padx=(40, 0))
+        tk.Label(option_frame, text="Copies").grid(row=0, column=2, padx=20, pady=5, sticky="e")
         self.print_copy = tk.IntVar()
         self.print_copy.set(1)
         print_copy_dropdown = tk.Spinbox(option_frame, from_=1, to=100,
                                          textvariable=self.print_copy,
                                          width=4
                                          )
-        print_copy_dropdown.pack(side=tk.LEFT, padx=(10, 0))
+        print_copy_dropdown.grid(row=0, column=3, padx=5, pady=5, sticky="w")
+
+        offset_frame = tk.Frame(popup)
+        offset_frame.grid(row=2, column=0, columnspan=4, padx=20, pady=10, sticky="ew")
+
+        self.horizontal_offset = tk.DoubleVar()
+        self.horizontal_offset.set(0.0)
+        tk.Label(offset_frame, text="Horizontal\nOffset").grid(row=0, column=0, padx=2, pady=5, sticky="e")
+        horizontal_offset_dropdown = tk.Spinbox(offset_frame,
+                                                from_=-5,
+                                                to=5,
+                                                textvariable=self.horizontal_offset,
+                                                increment=0.5, format="%.1f",
+                                                width=4,
+                                                command=self.update_image_offset
+                                                )
+        horizontal_offset_dropdown.grid(row=0, column=1, padx=2, pady=5, sticky="w")
+        horizontal_offset_dropdown.bind("<FocusOut>", lambda event: self.update_image_offset())
+
+        tk.Label(offset_frame, text="Vertical\nOffset").grid(row=0, column=2, padx=10, pady=5, sticky="e")
+        self.vertical_offset = tk.DoubleVar()
+        self.vertical_offset.set(0.0)
+        vertical_offset_dropdown = tk.Spinbox(offset_frame, from_=-5, to=5,
+                                              textvariable=self.vertical_offset,
+                                              increment=0.5, format="%.1f",
+                                              width=4,
+                                              command=self.update_image_offset
+                                              )
+        vertical_offset_dropdown.grid(row=0, column=3, padx=2, pady=5, sticky="w")
+        vertical_offset_dropdown.bind("<FocusOut>", lambda event: self.update_image_offset())
 
         button_frame = tk.Frame(popup)
-        button_frame.pack(fill=tk.X, padx=20, pady=10)
+        button_frame.grid(row=3, column=0, columnspan=4, padx=20, pady=10, sticky="ew")
 
         self.print_button = tk.Button(button_frame, text="Print",
-                                      command=lambda image=img, density=self.print_density.get(),
+                                      command=lambda image=self.print_image, density=self.print_density.get(),
                                                      quantity=self.print_copy.get(): self.print_label(image, density,
                                                                                                       quantity))
-        self.print_button.pack(side=tk.LEFT, expand=True, pady=10)
+        self.print_button.grid(row=0, column=0, padx=5, pady=10, sticky="ew")
 
         close_button = tk.Button(button_frame, text="Close", command=popup.destroy)
-        close_button.pack(side=tk.LEFT, expand=True, pady=10)
+        close_button.grid(row=0, column=1, padx=5, pady=10, sticky="ew")
+
+        # Ensure the buttons are evenly spaced
+        button_frame.grid_columnconfigure(0, weight=1)
+        button_frame.grid_columnconfigure(1, weight=1)
+
+        # Ensure the frames are evenly spaced
+        option_frame.grid_columnconfigure(1, weight=1)
+        option_frame.grid_columnconfigure(3, weight=1)
+        offset_frame.grid_columnconfigure(1, weight=1)
+        offset_frame.grid_columnconfigure(3, weight=1)
+
+    def update_image_offset(self):
+        horizontal_offset = self.horizontal_offset.get()
+        vertical_offset = self.vertical_offset.get()
+        debug(horizontal_offset, vertical_offset)
+        self.print_image = self.export_to_png(output_filename=None,
+                                              horizontal_offset=horizontal_offset,
+                                              vertical_offset=vertical_offset)
+        img_tk = ImageTk.PhotoImage(self.print_image)
+        self.image_label.config(image=img_tk)
+        self.image_label.image = img_tk
+        self.print_button.config(command=lambda: self.print_label(self.print_image, self.print_density.get(), self.print_copy.get()))
+
 
     def print_label(self, image, density, quantity):
         self.print_button.config(state=tk.DISABLED)
         self.config.print_job = True
-        image = image.rotate(-int(90),PIL.Image.NEAREST, expand=True)
+
+        image = image.rotate(-int(90), PIL.Image.NEAREST, expand=True)
         future = asyncio.run_coroutine_threadsafe(
             self.print_op.print(image, density, quantity), self.root.async_loop
         )
