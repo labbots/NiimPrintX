@@ -75,7 +75,7 @@ jobs:
           Rename-Item -Path $originalExePath -NewName $newExePath
           $originalCliPath = "$env:GITHUB_WORKSPACE\dist\NiimPrintX\niimPrintx.exe"
           $newCliPath = "$env:GITHUB_WORKSPACE\dist\NiimPrintX\niimprintx-cli-${{ steps.get_tag_name.outputs.VERSION }}-Windows-X64.exe"
-          Rename-Item -Path $originalExePath -NewName $newExePath
+          Rename-Item -Path $originalCliPath -NewName $newCliPath
 
       - name: Upload GUI package
         uses: actions/upload-artifact@v4
