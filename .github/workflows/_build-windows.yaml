@@ -36,7 +36,11 @@ jobs:
           Invoke-WebRequest -Uri https://imagemagick.org/archive/binaries/ImageMagick-7.1.1-33-portable-Q16-HDRI-x64.zip -OutFile ImageMagick.zip
 
       - name: Extract ImageMagick
-        run: Expand-Archive -Path ImageMagick.zip -DestinationPath $env:GITHUB_WORKSPACE\resources\ImageMagick
+        run: |
+          Expand-Archive -Path ImageMagick.zip -DestinationPath $env:GITHUB_WORKSPACE\resources\ImageMagick
+          $extractedFolder = "$env:GITHUB_WORKSPACE\resources\ImageMagick\ImageMagick-7.1.1-33-portable-Q16-HDRI-x64"
+                    Move-Item -Path "$extractedFolder\*" -Destination "$env:GITHUB_WORKSPACE\resources\ImageMagick" -Force
+                    Remove-Item -Path $extractedFolder -Recurse -Force
 
       - name: Add ImageMagick to PATH
         run: echo "$env:GITHUB_WORKSPACE\resources\ImageMagick" | Out-File -FilePath $env:GITHUB_PATH -Encoding utf8 -Append
