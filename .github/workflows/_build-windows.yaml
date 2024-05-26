@@ -78,7 +78,7 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: NiimPrintX-${{ steps.get_tag_name.outputs.VERSION }}-Windows-X64.exe
-          path: ${{ github.workspace }}/dist/NiimPrintX-${{ steps.get_tag_name.outputs.VERSION }}-Windows-X64.exe
+          path: dist\NiimPrintX\NiimPrintX-${{ steps.get_tag_name.outputs.VERSION }}-Windows-X64.exe
           retention-days: 1
 
 #      - name: Upload CLI package
