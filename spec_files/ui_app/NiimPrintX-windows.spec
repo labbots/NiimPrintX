@@ -33,8 +33,6 @@ datas += [
     (os.path.join(src_path, 'assets'), 'NiimPrintX/ui/assets')
 ]
 
-# Include the runtime hook
-runtime_hooks = [os.path.join(hook_path, 'runtime_hook.py')]
 
 a = Analysis(
     [os.path.join(src_path, '__main__.py')],
@@ -44,7 +42,7 @@ a = Analysis(
     hiddenimports=['tkinter'],
     hookspath=[],
     hooksconfig={},
-    runtime_hooks=runtime_hooks,
+    runtime_hooks=[],
     excludes=[],
     noarchive=False,
     optimize=0,
