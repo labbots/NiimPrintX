@@ -93,12 +93,12 @@ jobs:
 
       - name: Rename the GUI executable
         run: |
-          $guiExePath = "$env:GITHUB_WORKSPACE\release\NiimPrintX.exe"
-          $newGuiExePath = "$env:GITHUB_WORKSPACE\release\NiimPrintX-App-${{ steps.get_tag_name.outputs.VERSION }}-Windows-X64.exe"
+          $guiExePath = "$env:GITHUB_WORKSPACE\release\NiimPrintX-App\NiimPrintX.exe"
+          $newGuiExePath = "$env:GITHUB_WORKSPACE\release\NiimPrintX-App\NiimPrintX-App-${{ steps.get_tag_name.outputs.VERSION }}-Windows-X64.exe"
           Rename-Item -Path $guiExePath -NewName $newGuiExePath
 
-          $cliExePath = "$env:GITHUB_WORKSPACE\release\niimprintx.exe"
-          $newCliExePath = "$env:GITHUB_WORKSPACE\release\niimprintx-cli-${{ steps.get_tag_name.outputs.VERSION }}-Windows-X64.exe"
+          $cliExePath = "$env:GITHUB_WORKSPACE\release\NiimPrintX-Cli\niimprintx.exe"
+          $newCliExePath = "$env:GITHUB_WORKSPACE\release\NiimPrintX-Cli\niimprintx-cli-${{ steps.get_tag_name.outputs.VERSION }}-Windows-X64.exe"
           Rename-Item -Path $cliExePath -NewName $newCliExePath
 
       - name: Upload GUI package
@@ -106,15 +106,15 @@ jobs:
         with:
           name: NiimPrintX-App-${{ steps.get_tag_name.outputs.VERSION }}-Windows-X64
           path: |
-            release\NiimPrintX\NiimPrintX-App-${{ steps.get_tag_name.outputs.VERSION }}-Windows-X64.exe
-            release\NiimPrintX\_internal
+            release\NiimPrintX-App\\NiimPrintX-App-${{ steps.get_tag_name.outputs.VERSION }}-Windows-X64.exe
+            release\NiimPrintX-App\\_internal
           retention-days: 1
 
       - name: Upload CLI package
         uses: actions/upload-artifact@v4
         with:
           name: niimprintx-cli-${{ steps.get_tag_name.outputs.VERSION }}-Windows-X64
-          path: release\niimprintx\niimprintx-cli-${{ steps.get_tag_name.outputs.VERSION }}-Windows-X64.exe
+          path: release\NiimPrintX-Cli\\niimprintx-cli-${{ steps.get_tag_name.outputs.VERSION }}-Windows-X64.exe
           retention-days: 1
 
 
