@@ -1,3 +1,4 @@
+import platform
 import subprocess
 import re
 from collections import defaultdict
@@ -9,13 +10,18 @@ def fonts():
     if hasattr(sys, '_MEIPASS'):
         base_path = sys._MEIPASS
         imagemagick_base_path = os.path.join(base_path, 'imagemagick')
-        magick_path = os.path.join(imagemagick_base_path, 'bin', 'magick', 'magick')
+        if platform.system() == "Linux" or platform.system() == "Darwin":
+            magick_path = os.path.join(imagemagick_base_path, 'bin', 'magick', 'magick')
+        elif platform.system() == "Windows":
+            magick_path = os.path.join(imagemagick_base_path, 'magick.exe')
+        else:
+            magick_path = 'magick'
     else:
         magick_path = 'magick'
 
     # magick_path = 'imagemagick/bin/magick'
 
-        # Path to the local ImageMagick binary within the collected data
+    # Path to the local ImageMagick binary within the collected data
     result = subprocess.run([magick_path, '-list', 'font'], stdout=subprocess.PIPE, text=True)
     output = result.stdout
     fonts_details = parse_font_details(output)
