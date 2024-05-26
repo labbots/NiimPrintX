@@ -1,5 +1,6 @@
 import asyncio
 import io
+import os
 import tkinter as tk
 from tkinter import ttk
 from tkinter import filedialog
@@ -81,10 +82,19 @@ class PrintOption:
 
     def display_print(self):
         # Export to PNG and display it in a pop-up window
-        tmp_file = tempfile.NamedTemporaryFile()
-        self.export_to_png(tmp_file.name)  # Save to file
-        self.display_image_in_popup(tmp_file.name)  # Display in pop-up window
-        tmp_file.close()
+        if self.config.os_system == "Windows":
+            # Windows-specific logic using tempfile.mkstemp()
+            fd, tmp_file_path = tempfile.mkstemp(suffix=".png")
+            try:
+                self.export_to_png(tmp_file_path)  # Save to file
+                self.display_image_in_popup(tmp_file_path)  # Display in pop-up window
+            finally:
+                os.close(fd)  # Close the file descriptor
+                os.remove(tmp_file_path)  # Remove the temporary file
+        else:
+            with tempfile.NamedTemporaryFile(suffix=".png") as tmp_file:
+                self.export_to_png(tmp_file.name)  # Save to file
+                self.display_image_in_popup(tmp_file.name)
 
     def save_image(self):
         options = {

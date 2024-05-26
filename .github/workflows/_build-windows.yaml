@@ -107,14 +107,16 @@ jobs:
           name: NiimPrintX-App-${{ steps.get_tag_name.outputs.VERSION }}-Windows-X64
           path: |
             release\NiimPrintX-App\\NiimPrintX-App-${{ steps.get_tag_name.outputs.VERSION }}-Windows-X64.exe
-            release\NiimPrintX-App\\_internal
+            release\NiimPrintX-App\_internal
           retention-days: 1
 
       - name: Upload CLI package
         uses: actions/upload-artifact@v4
         with:
           name: niimprintx-cli-${{ steps.get_tag_name.outputs.VERSION }}-Windows-X64
-          path: release\NiimPrintX-Cli\\niimprintx-cli-${{ steps.get_tag_name.outputs.VERSION }}-Windows-X64.exe
+          path: |
+            release\NiimPrintX-Cli\niimprintx-cli-${{ steps.get_tag_name.outputs.VERSION }}-Windows-X64.exe
+            release\NiimPrintX-Cli\_internal
           retention-days: 1
 
 
