@@ -57,8 +57,6 @@ jobs:
 
       - name: Create GUI compressed file
         run: |
-          cd dist && tar -czf NiimPrintX-CLI-${{ steps.get_tag_name.outputs.VERSION }}-MacOSX-${{ steps.get_architecture.outputs.ARCH }}.tar.gz niimprintx
-          |
           $outputFolder = "$env:GITHUB_WORKSPACE\dist\NiimPrintX"
           $zipPath = "$env:GITHUB_WORKSPACE\dist\NiimPrintX-Installer-${{ steps.get_tag_name.outputs.VERSION }}-Windows-X64.zip"
           Compress-Archive -Path "$outputFolder\*" -DestinationPath $zipPath
