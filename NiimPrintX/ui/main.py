@@ -64,6 +64,13 @@ class LabelPrinterApp(tk.Tk):
         threading.Thread(target=self.start_asyncio_loop, daemon=True).start()
 
         self.app_config = AppConfig()
+        if self.app_config.os_system == "Darwin":
+            style = ttk.Style(self)
+            style.theme_use('aqua')
+        elif self.app_config.os_system == "Windows":
+            style = ttk.Style(self)
+            style.theme_use('xpnative')
+
         self.create_widgets()
         self.create_menu()
         self.printer = None
