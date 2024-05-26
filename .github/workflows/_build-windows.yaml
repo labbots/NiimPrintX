@@ -11,7 +11,7 @@ jobs:
     steps:
       - name: Extract Tag
         id: get_tag_name
-        run: echo "VERSION=${GITHUB_REF/refs\/tags\//}" >> $ENV:GITHUB_ENV
+        run: echo "VERSION=${GITHUB_REF/refs\/tags\//}" | Out-File -FilePath $env:GITHUB_OUTPUT -Append
 
       - name: Checkout source code
         uses: actions/checkout@v4
@@ -85,28 +85,28 @@ jobs:
       - name: Rename the GUI executable
         run: |
           $guiExePath = "$env:GITHUB_WORKSPACE\release\NiimPrintX-App\NiimPrintX.exe"
-          $newGuiExePath = "$env:GITHUB_WORKSPACE\release\NiimPrintX-App\NiimPrintX-App-${env:VERSION}-Windows-X64.exe"
+          $newGuiExePath = "$env:GITHUB_WORKSPACE\release\NiimPrintX-App\NiimPrintX-App-${{ steps.get_tag_name.outputs.VERSION }}-Windows-X64.exe"
           Rename-Item -Path $guiExePath -NewName $newGuiExePath
 
           $cliExePath = "$env:GITHUB_WORKSPACE\release\NiimPrintX-Cli\niimprintx.exe"
-          $newCliExePath = "$env:GITHUB_WORKSPACE\release\NiimPrintX-Cli\niimprintx-cli-${env:VERSION}-Windows-X64.exe"
+          $newCliExePath = "$env:GITHUB_WORKSPACE\release\NiimPrintX-Cli\niimprintx-cli-${{ steps.get_tag_name.outputs.VERSION }}-Windows-X64.exe"
           Rename-Item -Path $cliExePath -NewName $newCliExePath
 
       - name: Upload GUI package
         uses: actions/upload-artifact@v4
         with:
-          name: NiimPrintX-App-${{ env.VERSION }}-Windows-X64
+          name: NiimPrintX-App-${{ steps.get_tag_name.outputs.VERSION }}-Windows-X64
           path: |
-            release\NiimPrintX-App\NiimPrintX-App-${{ env.VERSION }}-Windows-X64.exe
+            release\NiimPrintX-App\NiimPrintX-App-${{ steps.get_tag_name.outputs.VERSION }}-Windows-X64.exe
             release\NiimPrintX-App\_internal
           retention-days: 1
 
       - name: Upload CLI package
         uses: actions/upload-artifact@v4
         with:
-          name: niimprintx-cli-${{ env.VERSION }}-Windows-X64
+          name: niimprintx-cli-${{ steps.get_tag_name.outputs.VERSION }}-Windows-X64
           path: |
-            release\NiimPrintX-Cli\niimprintx-cli-${{ env.VERSION }}-Windows-X64.exe
+            release\NiimPrintX-Cli\niimprintx-cli-${{ steps.get_tag_name.outputs.VERSION }}-Windows-X64.exe
             release\NiimPrintX-Cli\_internal
           retention-days: 1
 
