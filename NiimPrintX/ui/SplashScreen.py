@@ -10,7 +10,7 @@ class SplashScreen(tk.Toplevel):
         self.image = tk.PhotoImage(file=image_path)
         label = tk.Label(self, image=self.image)
         label.pack()
-
+        self.withdraw()
         # Center the window
         self.update_idletasks()
         width = label.winfo_reqwidth()
@@ -18,3 +18,4 @@ class SplashScreen(tk.Toplevel):
         x = (self.winfo_screenwidth() // 2) - (width // 2)
         y = (self.winfo_screenheight() // 2) - (height // 2)
         self.geometry(f"{width}x{height}+{x}+{y}")
+        self.deiconify()
