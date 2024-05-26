@@ -1,8 +1,9 @@
 import os
 import appdirs
-
+import platform
 class AppConfig:
     def __init__(self):
+        self.os_system = platform.system()
         self.print_dpi = 203  # DPI value for printing
         self.screen_dpi = 72
         self.text_items = {}
@@ -59,3 +60,5 @@ class AppConfig:
         self.print_job = False
         self.printer_connected = False
         self.cache_dir = appdirs.user_cache_dir('NiimPrintX')
+
+

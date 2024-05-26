@@ -19,8 +19,11 @@ class TextTab:
         self.create_widgets()
 
     def create_widgets(self):
+        if self.config.os_system == "Darwin":
+            default_bg = 'systemWindowBackgroundColor1'
+        elif self.config.os_system == "Windows":
+            default_bg = 'systemWindowBackgroundColor'
 
-        default_bg = 'systemWindowBackgroundColor1'
         tk.Label(self.frame, text="Content", bg=default_bg).grid(row=0, column=0, sticky='w')
         self.content_entry = tk.Entry(self.frame, highlightbackground=default_bg)
         self.content_entry.grid(row=0, column=1, sticky='ew', padx=5)
