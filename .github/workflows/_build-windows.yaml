@@ -65,6 +65,9 @@ jobs:
 #          $zipPath = "$env:GITHUB_WORKSPACE\dist\NiimPrintX-Installer-${{ steps.get_tag_name.outputs.VERSION }}-Windows-X64.zip"
 #          Compress-Archive -Path "$outputFolder\*" -DestinationPath $zipPath
 
+      - name: List dist directory
+        run: Get-ChildItem -Path $env:GITHUB_WORKSPACE\dist\NiimPrintX
+
       - name: Rename the GUI executable
         run: |
           $originalExePath = "$env:GITHUB_WORKSPACE\dist\NiimPrintX\NiimPrintX.exe"
@@ -75,7 +78,7 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: NiimPrintX-${{ steps.get_tag_name.outputs.VERSION }}-Windows-X64.exe
-          path: dist/NiimPrintX-${{ steps.get_tag_name.outputs.VERSION }}-Windows-X64.exe
+          path: ${{ github.workspace }}/dist/NiimPrintX-${{ steps.get_tag_name.outputs.VERSION }}-Windows-X64.exe
           retention-days: 1
 
 #      - name: Upload CLI package
