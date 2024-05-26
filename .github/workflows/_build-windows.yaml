@@ -11,7 +11,7 @@ jobs:
     steps:
       - name: Extract Tag
         id: get_tag_name
-        run: echo "VERSION=${GITHUB_REF/refs\/tags\//}" >> $GITHUB_OUTPUT
+        run: echo "VERSION=${GITHUB_REF/refs\/tags\//}" >> $env:GITHUB_ENV
 
       - name: Checkout source code
         uses: actions/checkout@v4
@@ -61,9 +61,6 @@ jobs:
       - name: Remove dist folder content
         run: Remove-Item "$env:GITHUB_WORKSPACE\dist\*.*"
 
-      - name: List dist directory
-        run: Get-ChildItem -Path $env:GITHUB_WORKSPACE\release
-
       - name: Package CLI with PyInstaller
         run: poetry run pyinstaller spec_files/cli_app/NiimPrintX-windows.spec --noconfirm --clean
 
@@ -83,39 +80,33 @@ jobs:
 #          Compress-Archive -Path "$outputFolder\*" -DestinationPath $zipPath
 
       - name: List dist directory
-        run: Get-ChildItem -Path $env:GITHUB_WORKSPACE\dist\NiimPrintX
-
-      - name: List dist directory
-        run: Get-ChildItem -Path $env:GITHUB_WORKSPACE\dist\niimprintx
-
-      - name: List dist directory
         run: Get-ChildItem -Path $env:GITHUB_WORKSPACE\release
 
       - name: Rename the GUI executable
         run: |
           $guiExePath = "$env:GITHUB_WORKSPACE\release\NiimPrintX-App\NiimPrintX.exe"
-          $newGuiExePath = "$env:GITHUB_WORKSPACE\release\NiimPrintX-App\NiimPrintX-App-${{ steps.get_tag_name.outputs.VERSION }}-Windows-X64.exe"
+          $newGuiExePath = "$env:GITHUB_WORKSPACE\release\NiimPrintX-App\NiimPrintX-App-${env:VERSION}-Windows-X64.exe"
           Rename-Item -Path $guiExePath -NewName $newGuiExePath
 
           $cliExePath = "$env:GITHUB_WORKSPACE\release\NiimPrintX-Cli\niimprintx.exe"
-          $newCliExePath = "$env:GITHUB_WORKSPACE\release\NiimPrintX-Cli\niimprintx-cli-${{ steps.get_tag_name.outputs.VERSION }}-Windows-X64.exe"
+          $newCliExePath = "$env:GITHUB_WORKSPACE\release\NiimPrintX-Cli\niimprintx-cli-${env:VERSION}-Windows-X64.exe"
           Rename-Item -Path $cliExePath -NewName $newCliExePath
 
       - name: Upload GUI package
         uses: actions/upload-artifact@v4
         with:
-          name: NiimPrintX-App-${{ steps.get_tag_name.outputs.VERSION }}-Windows-X64
+          name: NiimPrintX-App-${{ env.VERSION }}-Windows-X64
           path: |
-            release\NiimPrintX-App\\NiimPrintX-App-${{ steps.get_tag_name.outputs.VERSION }}-Windows-X64.exe
+            release\NiimPrintX-App\NiimPrintX-App-${{ env.VERSION }}-Windows-X64.exe
             release\NiimPrintX-App\_internal
           retention-days: 1
 
       - name: Upload CLI package
         uses: actions/upload-artifact@v4
         with:
-          name: niimprintx-cli-${{ steps.get_tag_name.outputs.VERSION }}-Windows-X64
+          name: niimprintx-cli-${{ env.VERSION }}-Windows-X64
           path: |
-            release\NiimPrintX-Cli\niimprintx-cli-${{ steps.get_tag_name.outputs.VERSION }}-Windows-X64.exe
+            release\NiimPrintX-Cli\niimprintx-cli-${{ env.VERSION }}-Windows-X64.exe
             release\NiimPrintX-Cli\_internal
           retention-days: 1
 
