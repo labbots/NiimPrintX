@@ -53,6 +53,9 @@ jobs:
       - name: Package application with PyInstaller
         run: poetry run pyinstaller spec_files/ui_app/NiimPrintX-windows.spec --noconfirm --clean
 
+      - name: List dist directory
+        run: Get-ChildItem -Path $env:GITHUB_WORKSPACE\dist\NiimPrintX
+
       - name: Package CLI with PyInstaller
         run: poetry run pyinstaller spec_files/cli_app/NiimPrintX-windows.spec --noconfirm --clean
 
@@ -66,7 +69,10 @@ jobs:
 #          Compress-Archive -Path "$outputFolder\*" -DestinationPath $zipPath
 
       - name: List dist directory
-        run: Get-ChildItem -Path $env:GITHUB_WORKSPACE\dist
+        run: Get-ChildItem -Path $env:GITHUB_WORKSPACE\dist\NiimPrintX
+
+      - name: List dist directory
+        run: Get-ChildItem -Path $env:GITHUB_WORKSPACE\dist\niimprintx
 
       - name: Rename the GUI executable
         run: |
