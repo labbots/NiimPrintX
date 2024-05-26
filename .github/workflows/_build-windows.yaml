@@ -55,9 +55,11 @@ jobs:
 
       - name: Create release directory and move GUI files
         run: |
-          New-Item -Path $env:GITHUB_WORKSPACE\release -ItemType Directory
-          Move-Item -Path $env:GITHUB_WORKSPACE\dist\NiimPrintX\* -Destination $env:GITHUB_WORKSPACE\release
+          New-Item -Path $env:GITHUB_WORKSPACE\release\NiimPrintX-App -ItemType Directory
+          Move-Item -Path $env:GITHUB_WORKSPACE\dist\NiimPrintX\* -Destination $env:GITHUB_WORKSPACE\release\NiimPrintX-App
 
+      - name: Remove dist folder content
+        run: Remove-Item "$env:GITHUB_WORKSPACE\dist\*.*"
 
       - name: List dist directory
         run: Get-ChildItem -Path $env:GITHUB_WORKSPACE\release
@@ -66,7 +68,9 @@ jobs:
         run: poetry run pyinstaller spec_files/cli_app/NiimPrintX-windows.spec --noconfirm --clean
 
       - name: Move CLI files to release directory
-        run: Move-Item -Path $env:GITHUB_WORKSPACE\dist\niimprintx\* -Destination $env:GITHUB_WORKSPACE\release
+        run: |
+          New-Item -Path $env:GITHUB_WORKSPACE\release\NiimPrintX-Cli -ItemType Directory
+          Move-Item -Path $env:GITHUB_WORKSPACE\dist\niimprintx\* -Destination $env:GITHUB_WORKSPACE\release\NiimPrintX-Cli
 
 
       #      - name: Create CLI compressed file
