@@ -20,19 +20,34 @@ fi
 # Since create-dmg does not clobber, be sure to delete previous DMG
 [[ -f "${DMG_FILE_NAME}" ]] && rm "${DMG_FILE_NAME}"
 
-echo killing...; sudo pkill -9 XProtect >/dev/null || true;
-echo waiting...; while pgrep XProtect; do sleep 3; done;
+# Function to kill and wait for XProtect processes
+kill_xprotect() {
+  echo "Killing XProtect processes..."
+  sudo pkill -9 XProtect || true
+  echo "Waiting for XProtect processes to terminate..."
+  while pgrep XProtect; do sleep 5; done
+  echo "XProtect processes terminated."
+}
+
+
 # Create the DMG
-sudo create-dmg \
-  --volname "${VOLUME_NAME}" \
-  --background "../assets/images/niimprintx-background.png" \
-  --window-pos 200 120 \
-  --window-size 800 400 \
-  --icon-size 100 \
-  --icon "${APP_NAME}.app" 200 190 \
-  --hide-extension "${APP_NAME}.app" \
-  --app-drop-link 600 185 \
-  --no-internet-enable \
-  --hdiutil-verbose \
-  "${DMG_FILE_NAME}" \
-  "${SOURCE_FOLDER_PATH}"
+# Retry logic to handle resource busy error
+for i in {1..5}; do
+  kill_xprotect
+  sudo create-dmg \
+    --volname "${VOLUME_NAME}" \
+    --background "../assets/images/niimprintx-background.png" \
+    --window-pos 200 120 \
+    --window-size 800 400 \
+    --icon-size 100 \
+    --icon "${APP_NAME}.app" 200 190 \
+    --hide-extension "${APP_NAME}.app" \
+    --app-drop-link 600 185 \
+    --no-internet-enable \
+    --hdiutil-verbose \
+    "${DMG_FILE_NAME}" \
+    "${SOURCE_FOLDER_PATH}" && break
+
+  echo "Attempt $i: Resource busy, retrying in 5 seconds..."
+  sleep 5
+done
