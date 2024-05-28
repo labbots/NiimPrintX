@@ -19,14 +19,14 @@ jobs:
   windows:
     uses: ./.github/workflows/_build-windows.yaml
 
-  linux:
-    uses: ./.github/workflows/_build-linux.yaml
+#  linux:
+#    uses: ./.github/workflows/_build-linux.yaml
 
   release:
     name: "Release"
     runs-on: ubuntu-latest
     needs:
-#      - macos
+      - macos
       - windows
     if: always() && !cancelled() && !contains(needs.*.result, 'failure')
     steps:
