@@ -1,0 +1,36 @@
+name: "Linux"
+
+on:
+  workflow_call:
+
+jobs:
+  windows:
+    name: "Linux"
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Extract Tag
+        id: get_tag_name
+        run: echo "VERSION=${GITHUB_REF/refs\/tags\//}" >> $GITHUB_OUTPUT
+
+      - name: Checkout source code
+        uses: actions/checkout@v4
+
+      - name: Install poetry
+        run: pipx install poetry
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          cache: 'poetry'
+
+      - name: Install dependencies
+        run: poetry install
+
+      - name: Show TKinter version
+        run: |
+          python3 -c 'import tkinter; tcl = tkinter.Tcl(); print(tcl.call("info", "patchlevel"))'
+      
+            - name: Install ImageMagick & create-dmg
+        run: brew install imagemagick create-dmg tcl-tk python-tk
+

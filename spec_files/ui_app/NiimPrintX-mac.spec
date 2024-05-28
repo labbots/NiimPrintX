@@ -21,7 +21,8 @@ def collect_and_adjust_files(base_path, target_dir):
     for root, _, files in os.walk(base_path):
         for file in files:
             full_path = os.path.join(root, file)
-            rel_path = os.path.relpath(full_path, base_path)
+            # We only need the relative path without the filename
+            rel_path = os.path.relpath(root, base_path)
             target_path = os.path.join(target_dir, rel_path)
             collected_files.append((full_path, target_path))
     return collected_files
