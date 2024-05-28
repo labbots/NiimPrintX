@@ -44,6 +44,10 @@ jobs:
       - name: Package application with PyInstaller
         run: poetry run pyinstaller spec_files/ui_app/NiimPrintX-mac.spec --noconfirm --clean
 
+      - name: Avoid a race condition in cpack
+        run: |
+          sudo pkill -9 XProtect >/dev/null || true;
+
       - name: Create DMG package
         run: ./.github/workflows/mac-dmg-builder.sh "${{ steps.get_tag_name.outputs.VERSION }}" "${{ steps.get_architecture.outputs.ARCH }}"
 
