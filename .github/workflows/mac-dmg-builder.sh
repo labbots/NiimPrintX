@@ -33,5 +33,6 @@ sudo create-dmg \
   --hide-extension "${APP_NAME}.app" \
   --app-drop-link 600 185 \
   --no-internet-enable \
+  --hdiutil-verbose \
   "${DMG_FILE_NAME}" \
   "${SOURCE_FOLDER_PATH}"
