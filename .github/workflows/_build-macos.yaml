@@ -45,7 +45,7 @@ jobs:
         run: poetry run pyinstaller spec_files/ui_app/NiimPrintX-mac.spec --noconfirm --clean
 
       - name: Avoid a race condition in cpack
-        if: input.os == 'macos-13'
+        if: inputs.os == 'macos-13'
         run: |
           # TODO: Replace this with a better solution
           # See https://github.com/actions/runner-images/issues/7522
