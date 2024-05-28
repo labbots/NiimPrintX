@@ -45,7 +45,7 @@ unmount_all_disks() {
 for i in {1..5}; do
   kill_xprotect
   unmount_all_disks
-  sudo create-dmg \
+  sudo ./create-dmg \
     --volname "${VOLUME_NAME}" \
     --background "../assets/images/niimprintx-background.png" \
     --window-pos 200 120 \
