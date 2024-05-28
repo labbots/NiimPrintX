@@ -27,13 +27,24 @@ kill_xprotect() {
   echo "Waiting for XProtect processes to terminate..."
   while pgrep XProtect; do sleep 5; done
   echo "XProtect processes terminated."
+  sudo mdutil -a -i off || true
 }
 
+
+# Function to unmount all mounted disk images
+unmount_all_disks() {
+  echo "Unmounting all mounted disk images..."
+  while read -r disk; do
+    hdiutil detach "$disk" || true
+  done < <(hdiutil info | grep '/dev/' | awk '{print $1}')
+  echo "Unmounted all disk images."
+}
 
 # Create the DMG
 # Retry logic to handle resource busy error
 for i in {1..5}; do
   kill_xprotect
+  unmount_all_disks
   sudo create-dmg \
     --volname "${VOLUME_NAME}" \
     --background "../assets/images/niimprintx-background.png" \
