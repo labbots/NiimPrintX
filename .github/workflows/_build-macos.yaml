@@ -56,7 +56,12 @@ jobs:
 #          echo "XProtect processes terminated."
 
       - name: Create DMG package
+        if: ${{ inputs.os == 'macos-latest' }}
         run: ./.github/workflows/mac-dmg-builder.sh "${{ steps.get_tag_name.outputs.VERSION }}" "${{ steps.get_architecture.outputs.ARCH }}"
+
+      - name: Create GUI compressed file
+        if: ${{ inputs.os == 'macos-13' }}
+        run: cd dist && tar -czf NiimPrintX-App-${{ steps.get_tag_name.outputs.VERSION }}-MacOSX-${{ steps.get_architecture.outputs.ARCH }}.tar.gz NiimprintX
 
       - name: Package CLI with PyInstaller
         run: poetry run pyinstaller spec_files/cli_app/NiimPrintX-mac.spec --noconfirm --clean
@@ -65,10 +70,19 @@ jobs:
         run: cd dist && tar -czf NiimPrintX-CLI-${{ steps.get_tag_name.outputs.VERSION }}-MacOSX-${{ steps.get_architecture.outputs.ARCH }}.tar.gz niimprintx
 
       - name: Upload DMG package
+        if: ${{ inputs.os == 'macos-latest' }}
         uses: actions/upload-artifact@v4
         with:
           name: NiimPrintX-Installer-${{ steps.get_tag_name.outputs.VERSION }}-MacOSX-${{ steps.get_architecture.outputs.ARCH }}.dmg
           path: dist/NiimPrintX-Installer-${{ steps.get_tag_name.outputs.VERSION }}-MacOSX-${{ steps.get_architecture.outputs.ARCH }}.dmg
+          retention-days: 1
+
+      - name: Upload GUI package
+        if: ${{ inputs.os == 'macos-13' }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: NiimPrintX-App-${{ steps.get_tag_name.outputs.VERSION }}-MacOSX-${{ steps.get_architecture.outputs.ARCH }}.tar.gz
+          path: dist/NiimPrintX-App-${{ steps.get_tag_name.outputs.VERSION }}-MacOSX-${{ steps.get_architecture.outputs.ARCH }}.tar.gz
           retention-days: 1
 
       - name: Upload CLI package

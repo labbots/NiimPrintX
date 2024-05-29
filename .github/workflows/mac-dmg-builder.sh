@@ -42,6 +42,8 @@ unmount_all_disks() {
 
 # Create the DMG
 # Retry logic to handle resource busy error
+success=0
+
 for i in {1..5}; do
   kill_xprotect
   unmount_all_disks
@@ -57,8 +59,13 @@ for i in {1..5}; do
     --no-internet-enable \
     --hdiutil-verbose \
     "${DMG_FILE_NAME}" \
-    "${SOURCE_FOLDER_PATH}" && break
+    "${SOURCE_FOLDER_PATH}" && { success=1; break; }
 
   echo "Attempt $i: Resource busy, retrying in 5 seconds..."
   sleep 5
 done
+
+if [[ $success -ne 1 ]]; then
+    echo "Failed to create disk image after 5 attempts."
+    exit 1
+fi
