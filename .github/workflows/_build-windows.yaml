@@ -72,44 +72,43 @@ jobs:
           Move-Item -Path $env:GITHUB_WORKSPACE\dist\niimprintx\* -Destination $env:GITHUB_WORKSPACE\release\NiimPrintX-Cli
 
 
-      #      - name: Create CLI compressed file
-#        run: cd dist && tar -czf NiimPrintX-CLI-${{ steps.get_tag_name.outputs.VERSION }}-MacOSX-${{ steps.get_architecture.outputs.ARCH }}.tar.gz niimprintx
+      - name: Create GUI compressed file
+        run: |
+          $outputFolder = "$env:GITHUB_WORKSPACE\release\NiimPrintX-App"
+          $zipPath = "$env:GITHUB_WORKSPACE\release\NiimPrintX-App-${{ steps.get_tag_name.outputs.VERSION }}-Windows-X64.zip"
+          Compress-Archive -Path "$outputFolder\*" -DestinationPath $zipPath
 
-#      - name: Create GUI compressed file
-#        run: |
-#          $outputFolder = "$env:GITHUB_WORKSPACE\dist\NiimPrintX"
-#          $zipPath = "$env:GITHUB_WORKSPACE\dist\NiimPrintX-Installer-${{ steps.get_tag_name.outputs.VERSION }}-Windows-X64.zip"
-#          Compress-Archive -Path "$outputFolder\*" -DestinationPath $zipPath
+      - name: Create CLI compressed file
+        run: |
+          $outputFolder = "$env:GITHUB_WORKSPACE\release\NiimPrintX-Cli"
+          $zipPath = "$env:GITHUB_WORKSPACE\release\NiimPrintX-CLI-${{ steps.get_tag_name.outputs.VERSION }}-Windows-X64.zip"
+          Compress-Archive -Path "$outputFolder\*" -DestinationPath $zipPath
 
       - name: List dist directory
         run: Get-ChildItem -Path $env:GITHUB_WORKSPACE\release
 
-      - name: Rename the GUI executable
-        run: |
-          $guiExePath = "$env:GITHUB_WORKSPACE\release\NiimPrintX-App\NiimPrintX.exe"
-          $newGuiExePath = "$env:GITHUB_WORKSPACE\release\NiimPrintX-App\NiimPrintX-App-${{ steps.get_tag_name.outputs.VERSION }}-Windows-X64.exe"
-          Rename-Item -Path $guiExePath -NewName $newGuiExePath
-
-          $cliExePath = "$env:GITHUB_WORKSPACE\release\NiimPrintX-Cli\niimprintx.exe"
-          $newCliExePath = "$env:GITHUB_WORKSPACE\release\NiimPrintX-Cli\niimprintx-cli-${{ steps.get_tag_name.outputs.VERSION }}-Windows-X64.exe"
-          Rename-Item -Path $cliExePath -NewName $newCliExePath
+#      - name: Rename the GUI executable
+#        run: |
+#          $guiExePath = "$env:GITHUB_WORKSPACE\release\NiimPrintX-App\NiimPrintX.exe"
+#          $newGuiExePath = "$env:GITHUB_WORKSPACE\release\NiimPrintX-App\NiimPrintX-App-${{ steps.get_tag_name.outputs.VERSION }}-Windows-X64.exe"
+#          Rename-Item -Path $guiExePath -NewName $newGuiExePath
+#
+#          $cliExePath = "$env:GITHUB_WORKSPACE\release\NiimPrintX-Cli\niimprintx.exe"
+#          $newCliExePath = "$env:GITHUB_WORKSPACE\release\NiimPrintX-Cli\niimprintx-cli-${{ steps.get_tag_name.outputs.VERSION }}-Windows-X64.exe"
+#          Rename-Item -Path $cliExePath -NewName $newCliExePath
 
       - name: Upload GUI package
         uses: actions/upload-artifact@v4
         with:
-          name: NiimPrintX-App-${{ steps.get_tag_name.outputs.VERSION }}-Windows-X64
-          path: |
-            release\NiimPrintX-App\NiimPrintX-App-${{ steps.get_tag_name.outputs.VERSION }}-Windows-X64.exe
-            release\NiimPrintX-App\_internal
+          name: NiimPrintX-App-${{ steps.get_tag_name.outputs.VERSION }}-Windows-X64.zip
+          path: release\NiimPrintX-App-${{ steps.get_tag_name.outputs.VERSION }}-Windows-X64.zip
           retention-days: 1
 
       - name: Upload CLI package
         uses: actions/upload-artifact@v4
         with:
-          name: niimprintx-cli-${{ steps.get_tag_name.outputs.VERSION }}-Windows-X64
-          path: |
-            release\NiimPrintX-Cli\niimprintx-cli-${{ steps.get_tag_name.outputs.VERSION }}-Windows-X64.exe
-            release\NiimPrintX-Cli\_internal
+          name: NiimPrintX-CLI-${{ steps.get_tag_name.outputs.VERSION }}-Windows-X64.zip
+          path: release\NiimPrintX-CLI-${{ steps.get_tag_name.outputs.VERSION }}-Windows-X64.zip
           retention-days: 1
 
 
