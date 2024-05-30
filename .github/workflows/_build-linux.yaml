@@ -13,6 +13,10 @@ jobs:
         id: get_tag_name
         run: echo "VERSION=${GITHUB_REF/refs\/tags\//}" >> $GITHUB_OUTPUT
 
+      - name: Extract Architecture
+        id: get_architecture
+        run: echo "ARCH=$(uname -m)" >> $GITHUB_OUTPUT
+
       - name: Checkout source code
         uses: actions/checkout@v4
 
@@ -24,9 +28,39 @@ jobs:
         with:
           cache: 'poetry'
 
-      - name: Install dependencies
+      - name: Install Linux dependencies
+        run: sudo apt install -y imagemagick python3-tk
+
+
+      - name: Install python dependencies
         run: poetry install
 
       - name: Show TKinter version
         run: |
           python3 -c 'import tkinter; tcl = tkinter.Tcl(); print(tcl.call("info", "patchlevel"))'
+
+      - name: Package application with PyInstaller
+        run: poetry run pyinstaller spec_files/ui_app/NiimPrintX-linux.spec --noconfirm --clean
+
+      - name: Create GUI compressed file
+        run: cd dist && tar -czf NiimPrintX-App-${{ steps.get_tag_name.outputs.VERSION }}-Linux-${{ steps.get_architecture.outputs.ARCH }}.tar.gz NiimprintX
+
+      - name: Package CLI with PyInstaller
+        run: poetry run pyinstaller spec_files/cli_app/NiimPrintX-linux.spec --noconfirm --clean
+
+      - name: Create CLI compressed file
+        run: cd dist && tar -czf NiimPrintX-CLI-${{ steps.get_tag_name.outputs.VERSION }}-Linux-${{ steps.get_architecture.outputs.ARCH }}.tar.gz niimprintx
+
+      - name: Upload GUI package
+        uses: actions/upload-artifact@v4
+        with:
+          name: NiimPrintX-App-${{ steps.get_tag_name.outputs.VERSION }}-Linux-${{ steps.get_architecture.outputs.ARCH }}.tar.gz
+          path: dist/NiimPrintX-App-${{ steps.get_tag_name.outputs.VERSION }}-Linux-${{ steps.get_architecture.outputs.ARCH }}.tar.gz
+          retention-days: 1
+
+      - name: Upload CLI package
+        uses: actions/upload-artifact@v4
+        with:
+          name: NiimPrintX-CLI-${{ steps.get_tag_name.outputs.VERSION }}-Linux-${{ steps.get_architecture.outputs.ARCH }}.tar.gz
+          path: dist/NiimPrintX-CLI-${{ steps.get_tag_name.outputs.VERSION }}-Linux-${{ steps.get_architecture.outputs.ARCH }}.tar.gz
+          retention-days: 1

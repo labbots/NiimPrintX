@@ -21,6 +21,8 @@ class TextTab:
     def create_widgets(self):
         if self.config.os_system == "Darwin":
             default_bg = 'systemWindowBackgroundColor1'
+        elif self.config.os_system == "Linux":
+            default_bg = "grey85"
         elif self.config.os_system == "Windows":
             default_bg = 'systemButtonFace'
 

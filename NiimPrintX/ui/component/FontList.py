@@ -10,14 +10,19 @@ def fonts():
     if hasattr(sys, '_MEIPASS'):
         base_path = sys._MEIPASS
         imagemagick_base_path = os.path.join(base_path, 'imagemagick')
-        if platform.system() == "Linux" or platform.system() == "Darwin":
+        if platform.system() == "Darwin":
             magick_path = os.path.join(imagemagick_base_path, 'bin', 'magick')
         elif platform.system() == "Windows":
             magick_path = os.path.join(imagemagick_base_path, 'magick.exe')
+        elif platform.system() == "Linux":
+            magick_path = os.path.join(os.sep, 'usr', 'local', 'bin', 'convert')
         else:
             magick_path = 'magick'
     else:
-        magick_path = 'magick'
+        if platform.system() == "Linux":
+            magick_path = 'convert'
+        else:
+            magick_path = 'magick'
 
     # magick_path = 'imagemagick/bin/magick'
 
