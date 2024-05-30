@@ -43,7 +43,7 @@ jobs:
         run: poetry run pyinstaller spec_files/ui_app/NiimPrintX-linux.spec --noconfirm --clean
 
       - name: Create GUI compressed file
-        run: cd dist && tar -czf NiimPrintX-App-${{ steps.get_tag_name.outputs.VERSION }}-Linux-${{ steps.get_architecture.outputs.ARCH }}.tar.gz NiimprintX
+        run: cd dist && tar -czf NiimPrintX-App-${{ steps.get_tag_name.outputs.VERSION }}-Linux-${{ steps.get_architecture.outputs.ARCH }}.tar.gz NiimPrintX
 
       - name: Package CLI with PyInstaller
         run: poetry run pyinstaller spec_files/cli_app/NiimPrintX-linux.spec --noconfirm --clean
