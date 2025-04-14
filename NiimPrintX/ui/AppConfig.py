@@ -18,6 +18,7 @@ class AppConfig:
         self.label_sizes = {
             "d110": {
                 "size": {
+                    "30mm x 12mm": (30, 12),
                     "30mm x 15mm": (30, 15),
                     "40mm x 12mm": (40, 12),
                     "50mm x 14mm": (50, 14),
