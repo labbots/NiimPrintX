@@ -213,7 +213,7 @@ class PrintOption:
         offset_frame.grid(row=2, column=0, columnspan=4, padx=20, pady=10, sticky="ew")
 
         self.horizontal_offset = tk.DoubleVar()
-        self.horizontal_offset.set(0.0)
+        self.horizontal_offset.set(-4.0)
         tk.Label(offset_frame, text="Horizontal\nOffset").grid(row=0, column=0, padx=2, pady=5, sticky="e")
         horizontal_offset_dropdown = tk.Spinbox(offset_frame,
                                                 from_=-5,
@@ -228,7 +228,7 @@ class PrintOption:
 
         tk.Label(offset_frame, text="Vertical\nOffset").grid(row=0, column=2, padx=10, pady=5, sticky="e")
         self.vertical_offset = tk.DoubleVar()
-        self.vertical_offset.set(0.0)
+        self.vertical_offset.set(1.0)
         vertical_offset_dropdown = tk.Spinbox(offset_frame, from_=-5, to=5,
                                               textvariable=self.vertical_offset,
                                               increment=0.5, format="%.1f",
