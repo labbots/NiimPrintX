@@ -25,7 +25,9 @@ class PrintOption:
         self.check_heartbeat()
 
     def check_heartbeat(self):
-        asyncio.run_coroutine_threadsafe(self.schedule_heartbeat(), self.root.async_loop)
+        asyncio.run_coroutine_threadsafe(
+            self.schedule_heartbeat(), self.root.async_loop
+        )
 
     async def schedule_heartbeat(self):
         while True:
@@ -51,9 +53,13 @@ class PrintOption:
     def create_widgets(self):
         print_button = tk.Button(self.parent, text="Print", command=self.display_print)
         print_button.pack(side=tk.RIGHT, padx=10)
-        save_image_button = tk.Button(self.parent, text="Save Image", command=self.save_image)
+        save_image_button = tk.Button(
+            self.parent, text="Save Image", command=self.save_image
+        )
         save_image_button.pack(side=tk.RIGHT, padx=10)
-        self.connect_button = tk.Button(self.parent, text="Connect", command=self.printer_connect)
+        self.connect_button = tk.Button(
+            self.parent, text="Connect", command=self.printer_connect
+        )
         self.connect_button.pack(side=tk.RIGHT, padx=10)
 
     def printer_connect(self):
@@ -98,10 +104,10 @@ class PrintOption:
 
     def save_image(self):
         options = {
-            'defaultextension': '.png',
-            'filetypes': [('PNG files', '*.png')],
-            'initialfile': 'niimprintx.png',  # Specify an initial file name
-            'title': 'Save as PNG'
+            "defaultextension": ".png",
+            "filetypes": [("PNG files", "*.png")],
+            "initialfile": "niimprintx.png",  # Specify an initial file name
+            "title": "Save as PNG",
         }
         # Open the save as dialog and get the selected file name
         file_path = filedialog.asksaveasfilename(**options)
@@ -113,7 +119,9 @@ class PrintOption:
         inches = mm / 25.4
         return int(inches * self.config.print_dpi)
 
-    def export_to_png(self, output_filename=None, horizontal_offset=0.0, vertical_offset=0.0):
+    def export_to_png(
+        self, output_filename=None, horizontal_offset=0.0, vertical_offset=0.0
+    ):
         width = self.config.canvas.winfo_reqwidth()
         height = self.config.canvas.winfo_reqheight()
 
@@ -160,7 +168,9 @@ class PrintOption:
                 ctx.paint()
 
         # Create a cropped surface to save
-        cropped_surface = cairo.ImageSurface(cairo.FORMAT_ARGB32, int(bbox_width), int(bbox_height))
+        cropped_surface = cairo.ImageSurface(
+            cairo.FORMAT_ARGB32, int(bbox_width), int(bbox_height)
+        )
         cropped_ctx = cairo.Context(cropped_surface)
         cropped_ctx.set_source_surface(surface, -x1, -y1)
         cropped_ctx.paint()
@@ -168,7 +178,15 @@ class PrintOption:
             cropped_surface.write_to_png(output_filename)
         else:
             image_bytes = cropped_surface.get_data()
-            img = Image.frombuffer("RGBA", (int(bbox_width), int(bbox_height)), image_bytes, "raw", "BGRA", 0, 1)
+            img = Image.frombuffer(
+                "RGBA",
+                (int(bbox_width), int(bbox_height)),
+                image_bytes,
+                "raw",
+                "BGRA",
+                0,
+                1,
+            )
 
             return img
 
@@ -191,60 +209,81 @@ class PrintOption:
 
         self.print_density = tk.IntVar()
         self.print_density.set(3)
-        tk.Label(option_frame, text="Density").grid(row=0, column=0, padx=5, pady=5, sticky="e")
-        density_slider = tk.Spinbox(option_frame,
-                                    from_=1,
-                                    to=self.config.label_sizes[self.config.device]['density'],
-                                    textvariable=self.print_density,
-                                    width=4
-                                    )
+        tk.Label(option_frame, text="Density").grid(
+            row=0, column=0, padx=5, pady=5, sticky="e"
+        )
+        density_slider = tk.Spinbox(
+            option_frame,
+            from_=1,
+            to=self.config.label_sizes[self.config.device]["density"],
+            textvariable=self.print_density,
+            width=4,
+        )
         density_slider.grid(row=0, column=1, padx=5, pady=5, sticky="w")
 
-        tk.Label(option_frame, text="Copies").grid(row=0, column=2, padx=20, pady=5, sticky="e")
+        tk.Label(option_frame, text="Copies").grid(
+            row=0, column=2, padx=20, pady=5, sticky="e"
+        )
         self.print_copy = tk.IntVar()
         self.print_copy.set(1)
-        print_copy_dropdown = tk.Spinbox(option_frame, from_=1, to=100,
-                                         textvariable=self.print_copy,
-                                         width=4
-                                         )
+        print_copy_dropdown = tk.Spinbox(
+            option_frame, from_=1, to=100, textvariable=self.print_copy, width=4
+        )
         print_copy_dropdown.grid(row=0, column=3, padx=5, pady=5, sticky="w")
 
         offset_frame = tk.Frame(popup)
         offset_frame.grid(row=2, column=0, columnspan=4, padx=20, pady=10, sticky="ew")
 
         self.horizontal_offset = tk.DoubleVar()
-        self.horizontal_offset.set(-4.0)
-        tk.Label(offset_frame, text="Horizontal\nOffset").grid(row=0, column=0, padx=2, pady=5, sticky="e")
-        horizontal_offset_dropdown = tk.Spinbox(offset_frame,
-                                                from_=-5,
-                                                to=5,
-                                                textvariable=self.horizontal_offset,
-                                                increment=0.5, format="%.1f",
-                                                width=4,
-                                                command=self.update_image_offset
-                                                )
+        self.horizontal_offset.set(-3.0)
+        tk.Label(offset_frame, text="Horizontal\nOffset").grid(
+            row=0, column=0, padx=2, pady=5, sticky="e"
+        )
+        horizontal_offset_dropdown = tk.Spinbox(
+            offset_frame,
+            from_=-5,
+            to=5,
+            textvariable=self.horizontal_offset,
+            increment=0.5,
+            format="%.1f",
+            width=4,
+            command=self.update_image_offset,
+        )
         horizontal_offset_dropdown.grid(row=0, column=1, padx=2, pady=5, sticky="w")
-        horizontal_offset_dropdown.bind("<FocusOut>", lambda event: self.update_image_offset())
+        horizontal_offset_dropdown.bind(
+            "<FocusOut>", lambda event: self.update_image_offset()
+        )
 
-        tk.Label(offset_frame, text="Vertical\nOffset").grid(row=0, column=2, padx=10, pady=5, sticky="e")
+        tk.Label(offset_frame, text="Vertical\nOffset").grid(
+            row=0, column=2, padx=10, pady=5, sticky="e"
+        )
         self.vertical_offset = tk.DoubleVar()
         self.vertical_offset.set(1.0)
-        vertical_offset_dropdown = tk.Spinbox(offset_frame, from_=-5, to=5,
-                                              textvariable=self.vertical_offset,
-                                              increment=0.5, format="%.1f",
-                                              width=4,
-                                              command=self.update_image_offset
-                                              )
+        vertical_offset_dropdown = tk.Spinbox(
+            offset_frame,
+            from_=-5,
+            to=5,
+            textvariable=self.vertical_offset,
+            increment=0.5,
+            format="%.1f",
+            width=4,
+            command=self.update_image_offset,
+        )
         vertical_offset_dropdown.grid(row=0, column=3, padx=2, pady=5, sticky="w")
-        vertical_offset_dropdown.bind("<FocusOut>", lambda event: self.update_image_offset())
+        vertical_offset_dropdown.bind(
+            "<FocusOut>", lambda event: self.update_image_offset()
+        )
 
         button_frame = tk.Frame(popup)
         button_frame.grid(row=3, column=0, columnspan=4, padx=20, pady=10, sticky="ew")
 
-        self.print_button = tk.Button(button_frame, text="Print",
-                                      command=lambda image=self.print_image, density=self.print_density.get(),
-                                                     quantity=self.print_copy.get(): self.print_label(image, density,
-                                                                                                      quantity))
+        self.print_button = tk.Button(
+            button_frame,
+            text="Print",
+            command=lambda: self.print_label(
+                self.print_image, self.print_density.get(), self.print_copy.get()
+            ),
+        )
         self.print_button.grid(row=0, column=0, padx=5, pady=10, sticky="ew")
 
         close_button = tk.Button(button_frame, text="Close", command=popup.destroy)
@@ -264,14 +303,19 @@ class PrintOption:
         horizontal_offset = self.horizontal_offset.get()
         vertical_offset = self.vertical_offset.get()
         debug(horizontal_offset, vertical_offset)
-        self.print_image = self.export_to_png(output_filename=None,
-                                              horizontal_offset=horizontal_offset,
-                                              vertical_offset=vertical_offset)
+        self.print_image = self.export_to_png(
+            output_filename=None,
+            horizontal_offset=horizontal_offset,
+            vertical_offset=vertical_offset,
+        )
         img_tk = ImageTk.PhotoImage(self.print_image)
         self.image_label.config(image=img_tk)
         self.image_label.image = img_tk
-        self.print_button.config(command=lambda: self.print_label(self.print_image, self.print_density.get(), self.print_copy.get()))
-
+        self.print_button.config(
+            command=lambda: self.print_label(
+                self.print_image, self.print_density.get(), self.print_copy.get()
+            )
+        )
 
     def print_label(self, image, density, quantity):
         self.print_button.config(state=tk.DISABLED)
