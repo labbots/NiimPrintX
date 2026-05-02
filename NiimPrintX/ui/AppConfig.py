@@ -1,6 +1,9 @@
 import os
-import appdirs
 import platform
+
+import appdirs
+
+
 class AppConfig:
     def __init__(self):
         self.os_system = platform.system()
