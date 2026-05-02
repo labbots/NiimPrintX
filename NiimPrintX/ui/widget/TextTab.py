@@ -66,7 +66,7 @@ class TextTab:
 
         tk.Label(self.frame, text="Font Size", bg=default_bg).grid(row=2, column=0, sticky='w')
         self.size_var = tk.IntVar()
-        self.size_var.set(16)
+        self.size_var.set(24)
         self.font_size_dropdown = tk.Spinbox(self.frame, from_=4, to=100, textvariable=self.size_var,
                                              highlightbackground=default_bg, command=self.update_text_properties)
         self.font_size_dropdown.bind('<FocusOut>', self.update_text_properties)
