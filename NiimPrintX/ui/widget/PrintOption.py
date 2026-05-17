@@ -277,7 +277,7 @@ class PrintOption:
         self.print_button.config(state=tk.DISABLED)
         self.config.print_job = True
 
-        image = image.rotate(-int(90), PIL.Image.NEAREST, expand=True)
+        image = image.rotate(-int(0), PIL.Image.NEAREST, expand=True) #TODO: Add rotation option
         future = asyncio.run_coroutine_threadsafe(
             self.print_op.print(image, density, quantity), self.root.async_loop
         )

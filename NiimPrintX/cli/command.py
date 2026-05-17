@@ -110,8 +110,16 @@ async def _print(model, density, image, quantity, vertical_offset, horizontal_of
         printer = PrinterClient(device)
         if await printer.connect():
             print(f"Connected to {device.name}")
-        await printer.print_image(image, density=density, quantity=quantity, vertical_offset=vertical_offset,
+
+        if model == "b1":
+            print_info("Printing with B1 model")
+            await printer.print_imageV2(image, density=density, quantity=quantity)
+        else:
+            print_info("Printing with D model")
+            await printer.print_image(image, density=density, quantity=quantity, vertical_offset=vertical_offset,
                                   horizontal_offset=horizontal_offset)
+        
+
         print_success("Print job completed")
         await printer.disconnect()
     except Exception as e:

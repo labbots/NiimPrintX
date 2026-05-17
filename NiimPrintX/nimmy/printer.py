@@ -91,9 +91,14 @@ class PrinterClient:
             packet = NiimbotPacket(request_code, data)
             await self.transport.start_notification(self.char_uuid, self.notification_handler)
             await self.transport.write(packet.to_bytes(), self.char_uuid)
-            logger.debug(f"Printer command sent - {RequestCodeEnum(request_code).name}")
+            logger.debug(
+                f"Printer command sent - {RequestCodeEnum(request_code).name}:{request_code} - {[b for b in data]}")
+
             await asyncio.wait_for(self.notification_event.wait(), timeout)  # Wait until the notification event is set
             response = NiimbotPacket.from_bytes(self.notification_data)
+            logger.debug(
+                f"Printer response received - {[b for b in response.data]} - {len(response.data)} bytes")
+
             await self.transport.stop_notification(self.char_uuid)
             self.notification_event.clear()  # Reset the event for the next notification
             return response
@@ -150,6 +155,26 @@ class PrinterClient:
             await asyncio.sleep(0.1)
 
         await self.end_print()
+
+    async def print_imageV2(self, image: Image, density: int = 3, quantity: int = 1, vertical_offset=0,
+                            horizontal_offset=0):
+        await self.set_label_density(density)
+        await self.set_label_type(1)
+        await self.start_printV2(quantity=quantity)
+        await self.start_page_print()
+        await self.set_dimensionV2(image.height, image.width, quantity)
+
+        for pkt in self._encode_image(image, vertical_offset, horizontal_offset):
+            logger.debug(f"Sending packet: {pkt}")
+            # Send each line and wait for a response or status check
+            await self.write_raw(pkt)
+            # Adding a short delay or status check here can help manage buffer issues
+            # Adjust the delay as needed based on printer feedback
+            await asyncio.sleep(0.01)
+
+        await self.end_page_print()
+
+        await asyncio.sleep(2) # Sleep for some time, looks like it enhances the reliability of the print job
 
     def _encode_image(self, image: Image, vertical_offset=0, horizontal_offset=0):
         # Convert the image to monochrome
@@ -265,6 +290,13 @@ class PrinterClient:
     async def start_print(self):
         packet = await self.send_command(RequestCodeEnum.START_PRINT, b"\x01")
         return bool(packet.data[0])
+    
+    async def start_printV2(self, quantity):
+        assert 0 <= quantity <= 65535  # assume quantity can not be greater than 65535 (2 bytes)
+
+        command = struct.pack('H', quantity)
+        packet = await self.send_command(RequestCodeEnum.START_PRINT, b'\x00' + command + b'\x00\x00\x00\x00')
+        return bool(packet.data[0])
 
     async def end_print(self):
         packet = await self.send_command(RequestCodeEnum.END_PRINT, b"\x01")
@@ -285,6 +317,13 @@ class PrinterClient:
     async def set_dimension(self, w, h):
         packet = await self.send_command(
             RequestCodeEnum.SET_DIMENSION, struct.pack(">HH", w, h)
+        )
+        return bool(packet.data[0])
+    
+    async def set_dimensionV2(self, w, h, copies):
+        logger.debug(f"Setting dimension: {w}x{h}")
+        packet = await self.send_command(
+            RequestCodeEnum.SET_DIMENSION, struct.pack(">HHH", w, h, copies)
         )
         return bool(packet.data[0])
 

@@ -40,7 +40,11 @@ class PrinterOperation:
             if not self.config.printer_connected or not self.printer:
                 await self.printer_connect(self.config.device)
 
-            await self.printer.print_image(image, density, quantity)
+            if self.config.device == "b1":
+                await self.printer.print_imageV2(image, density, quantity)
+            else:
+                await self.printer.print_image(image, density, quantity)
+
             return True
         except Exception as e:
             messagebox.showerror("Error", f"{str(e)}.")

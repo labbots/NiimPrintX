@@ -67,9 +67,17 @@ class AppConfig:
                     "50mm x 14mm": (50, 14),
                     "120mm x 14mm": (120, 14),
                 },
-                "density": 3,
-                "print_dpi": 203
-
+                "density": 3
+                print_dpi": 203
+            },
+            "b1": {
+                "size": {
+                    "50mm x 30mm": (50, 30),
+                    "50mm x 15mm": (50, 14),
+                    "60mm x 40mm": (60, 40),
+                    "40mm x 30mm": (40, 30),
+                },
+                "density": 3
             }
         }
         self.current_label_size = None

@@ -20,7 +20,8 @@ import threading
 from loguru import logger
 
 
-logger.disable('NiimPrintX.nimmy')
+# logger.disable('NiimPrintX.nimmy')
+logger.enable('NiimPrintX.nimmy')
 
 # import sys
 # import logging
