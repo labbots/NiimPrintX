@@ -4,7 +4,6 @@ import platform
 class AppConfig:
     def __init__(self):
         self.os_system = platform.system()
-        self.print_dpi = 203  # DPI value for printing
         self.screen_dpi = 72
         self.text_items = {}
         self.image_items = {}
@@ -24,7 +23,8 @@ class AppConfig:
                     "75mm x 12mm": (75, 12),
                     "109mm x 12.5mm": (109, 12.5),
                 },
-                "density": 3
+                "density": 3,
+                "print_dpi": 203
             },
             "d11": {
                 "size": {
@@ -34,7 +34,20 @@ class AppConfig:
                     "75mm x 12mm": (75, 12),
                     "109mm x 12.5mm": (109, 12.5),
                 },
-                "density": 3
+                "density": 3,
+                "print_dpi": 203
+
+            },
+            "d11_h": {
+                "size": {
+                    "30mm x 14mm": (30, 14),
+                    "40mm x 12mm": (40, 12),
+                    "50mm x 14mm": (50, 14),
+                    "75mm x 12mm": (75, 12),
+                    "109mm x 12.5mm": (109, 12.5),
+                },
+                "density": 3,
+                "print_dpi": 300
             },
             "d101": {
                 "size": {
@@ -44,7 +57,9 @@ class AppConfig:
                     "75mm x 12mm": (75, 12),
                     "109mm x 12.5mm": (109, 12.5),
                 },
-                "density": 3
+                "density": 3,
+                "print_dpi": 203
+
             },
             "b18": {
                 "size": {
@@ -53,6 +68,7 @@ class AppConfig:
                     "120mm x 14mm": (120, 14),
                 },
                 "density": 3
+                print_dpi": 203
             },
             "b1": {
                 "size": {

@@ -81,7 +81,7 @@ Commands:
 Usage: python -m NiimPrintX.cli print [OPTIONS]
 
 Options:
-  -m, --model [b1|b18|b21|d11|d110]
+  -m, --model [b1|b18|b21|d11|d11_h|d110]
                                   Niimbot printer model  [default: d110]
   -d, --density INTEGER RANGE     Print density  [default: 3; 1<=x<=5]
   -n, --quantity INTEGER          Print quantity  [default: 1]

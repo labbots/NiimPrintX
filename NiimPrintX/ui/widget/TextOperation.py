@@ -29,13 +29,14 @@ class TextOperation:
             draw.text_kerning = font_props["kerning"]
             draw.fill_color = Color('black')  # Set font color to black
             draw.resolution = (300, 300)  # 300 DPI for high quality text rendering
-            metrics = draw.get_font_metrics(WandImage(width=1, height=1), text, multiline=False)
+            metrics = draw.get_font_metrics(WandImage(width=1, height=1), text, multiline=True)
             text_width = int(metrics.text_width) + 5
             text_height = int(metrics.text_height) + 5
 
             # Create a new WandImage
             with WandImage(width=text_width, height=text_height, background=Color('transparent')) as img:
-                draw.text(x=2, y=int(text_height / 2 + metrics.ascender / 2), body=text)
+                # Position text at top using ascender for proper multi-line rendering
+                draw.text(x=2, y=int(metrics.ascender), body=text)
                 draw(img)
 
                 # Ensure the image is in RGBA format
@@ -47,8 +48,8 @@ class TextOperation:
                 tk_image = tk.PhotoImage(data=img_blob)
                 return tk_image
     def add_text_to_canvas(self):
-        # Get the current text in the content_entry Entry widget
-        text = self.parent.content_entry.get()
+        # Get the current text in the content_entry Text widget
+        text = self.parent.content_entry.get("1.0", "end-1c")
 
         font_obj, font_props = self.parent.get_font_properties()
         if not text:
@@ -87,8 +88,8 @@ class TextOperation:
         font_prop = self.config.text_items[text_id]['font_props']
         text = self.config.text_items[text_id]['content']
 
-        self.parent.content_entry.delete(0, tk.END)
-        self.parent.content_entry.insert(0, text)
+        self.parent.content_entry.delete("1.0", tk.END)
+        self.parent.content_entry.insert("1.0", text)
 
         self.parent.font_family_dropdown.set(font_prop["family"])
         # self.parent.font_dropdown.set(font_prop["font"])
@@ -113,7 +114,7 @@ class TextOperation:
         self.parent.add_button.config(text="Update", command=lambda t_id=text_id: self.update_canvas_text(t_id))
 
     def update_canvas_text(self, text_id):
-        text = self.parent.content_entry.get()
+        text = self.parent.content_entry.get("1.0", "end-1c")
         self.config.text_items[text_id]['content'] = text
         font_props = self.config.text_items[text_id]['font_props']
         tk_image = self.create_text_image(font_props, text)

@@ -333,7 +333,7 @@ class PrinterClient:
 
     async def get_print_status(self):
         packet = await self.send_command(RequestCodeEnum.GET_PRINT_STATUS, b"\x01")
-        page, progress1, progress2 = struct.unpack(">HBB", packet.data)
+        page, progress1, progress2 = struct.unpack(">HBB", packet.data[:4])
         return {"page": page, "progress1": progress1, "progress2": progress2}
 
     def __del__(self):

@@ -9,12 +9,12 @@ packages = [{include = "*", from="NiimPrintX"}]
 
 
 [tool.poetry.dependencies]
-python = ">=3.12,<3.13"
+python = ">=3.12,<3.14"
 click = "^8.1.7"
-bleak = "^0.21.1"
+bleak = "^1.0.0"
 loguru = "^0.7.2"
-pillow = "^10.3.0"
-pycairo = "^1.26.0"
+pillow = "^11.0.0"
+pycairo = "^1.27.0"
 wand = "^0.6.13"
 appdirs = "^1.4.4"
 rich = "^13.7.1"

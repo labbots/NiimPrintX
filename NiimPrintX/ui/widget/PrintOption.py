@@ -111,7 +111,7 @@ class PrintOption:
 
     def mm_to_pixels(self, mm):
         inches = mm / 25.4
-        return int(inches * self.config.print_dpi)
+        return int(inches * self.config.label_sizes[self.config.device]["print_dpi"])
 
     def export_to_png(self, output_filename=None, horizontal_offset=0.0, vertical_offset=0.0):
         width = self.config.canvas.winfo_reqwidth()

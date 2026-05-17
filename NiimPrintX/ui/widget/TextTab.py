@@ -26,10 +26,22 @@ class TextTab:
         elif self.config.os_system == "Windows":
             default_bg = 'systemButtonFace'
 
-        tk.Label(self.frame, text="Content", bg=default_bg).grid(row=0, column=0, sticky='w')
-        self.content_entry = tk.Entry(self.frame, highlightbackground=default_bg)
-        self.content_entry.grid(row=0, column=1, sticky='ew', padx=5)
-        self.content_entry.insert(0, "Text")
+        # Content label and multi-line text entry with scrollbar
+        tk.Label(self.frame, text="Content", bg=default_bg).grid(row=0, column=0, sticky='nw')
+        
+        # Create frame to hold text widget and scrollbar
+        text_frame = tk.Frame(self.frame, bg=default_bg)
+        text_frame.grid(row=0, column=1, sticky='ew', padx=5)
+        
+        self.content_entry = tk.Text(text_frame, highlightbackground=default_bg, height=3, width=30)
+        self.content_entry.pack(side=tk.LEFT, fill=tk.BOTH, expand=True)
+        
+        # Add scrollbar for longer text
+        scrollbar = tk.Scrollbar(text_frame, command=self.content_entry.yview)
+        scrollbar.pack(side=tk.RIGHT, fill=tk.Y)
+        self.content_entry.config(yscrollcommand=scrollbar.set)
+        
+        self.content_entry.insert("1.0", "Text")
 
         self.sample_text_label = tk.Label(self.frame, text="Sample Text", font=('Arial', 14), bg=default_bg)
         self.sample_text_label.grid(row=0, column=2, sticky='w', columnspan=3)
@@ -96,14 +108,14 @@ class TextTab:
         # self.font_dropdown['values'] = list(self.fonts[font_family]["fonts"].keys())
         # self.font_dropdown.current(0)
 
-        content = self.content_entry.get()
+        content = self.content_entry.get("1.0", "end-1c")
         label_font = tk_font.Font(family=font_family, size=14)
         self.sample_text_label.config(font=label_font,
                                       text=f"{content} in {font_family}")
 
     def update_text_properties(self, event=None, widget_name=None):
         font_obj, font_props = self.get_font_properties()
-        content = self.content_entry.get()
+        content = self.content_entry.get("1.0", "end-1c")
         label_font = tk_font.Font(family=font_props['family'], size=14, weight=font_props['weight'],
                                   slant=font_props['slant'])
         self.sample_text_label.config(font=label_font,
