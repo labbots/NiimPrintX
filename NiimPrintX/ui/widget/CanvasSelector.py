@@ -15,7 +15,7 @@ class CanvasSelector:
     def create_widgets(self):
         device_label = tk.Label(self.frame, text="Device")
         device_label.pack(side=tk.LEFT, padx=10)
-        self.selected_device = tk.StringVar(value="D110")
+        self.selected_device = tk.StringVar(value="B21S")
         device_option = ttk.Combobox(self.frame, textvariable=self.selected_device,
                                      values=list(map(lambda x: x.upper(), self.config.label_sizes.keys())),
                                      state="readonly")
@@ -107,6 +107,8 @@ class CanvasSelector:
         )
 
         self.config.canvas.bind("<Button-1>", self.canvas_op.canvas_click_handler)
+        if callable(self.config.preview_callback):
+            self.config.preview_callback()
 
     def mm_to_pixels(self, mm):
         inches = mm / 25.4

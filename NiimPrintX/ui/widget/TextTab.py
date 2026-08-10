@@ -95,13 +95,24 @@ class TextTab:
         button_frame = tk.Frame(self.frame)
         self.add_button = tk.Button(button_frame, text="Add", highlightbackground=default_bg,
                                     command=self.text_op.add_text_to_canvas)
-        # add_button.grid(row=3, column=1, rowspan=4, padx=5)
 
         self.delete_button = tk.Button(button_frame, text="Delete", highlightbackground=default_bg,
                                        command=self.text_op.delete_text)
+        self.emoji_button = tk.Button(button_frame, text="Emoji…", highlightbackground=default_bg,
+                                      command=self.open_emoji_picker)
         self.add_button.pack(side=tk.LEFT)
         self.delete_button.pack(side=tk.LEFT)
+        self.emoji_button.pack(side=tk.LEFT)
         button_frame.grid(row=4, column=1, sticky="w")
+
+    def open_emoji_picker(self):
+        from .Preview import EmojiPicker
+
+        def insert_emoji(emoji: str):
+            self.content_entry.insert(tk.INSERT, emoji)
+            self.update_text_properties()
+
+        EmojiPicker(self.frame.winfo_toplevel(), insert_emoji)
 
     def update_font_list(self, event=None):
         font_family = self.font_family_dropdown.get()

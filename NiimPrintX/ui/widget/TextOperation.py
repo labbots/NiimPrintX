@@ -17,8 +17,17 @@ class TextOperation:
     # Function to add text to canvas and make it draggable
     def create_text_image(self, font_props, text):
         with WandDrawing() as draw:
-            # draw.font = font_props["font_name"]
             draw.font_family = font_props["family"]
+            # Prefer an emoji-capable font when the string contains non-BMP / symbol chars
+            if any(ord(ch) > 0x2FFF for ch in text):
+                for family in ("Noto Color Emoji", "Noto Emoji", "Segoe UI Emoji", "Apple Color Emoji"):
+                    try:
+                        draw.font_family = family
+                        break
+                    except Exception:
+                        continue
+                # Keep the chosen text font as primary; ImageMagick falls back for missing glyphs
+                draw.font_family = f"{font_props['family']}, Noto Color Emoji, Noto Emoji, DejaVu Sans"
             draw.font_size = font_props["size"]
             if font_props["slant"] == 'italic':
                 draw.font_style = 'italic'
@@ -27,24 +36,19 @@ class TextOperation:
             if font_props["underline"]:
                 draw.text_decoration = 'underline'
             draw.text_kerning = font_props["kerning"]
-            draw.fill_color = Color('black')  # Set font color to black
-            draw.resolution = (300, 300)  # 300 DPI for high quality text rendering
+            draw.fill_color = Color('black')
+            draw.resolution = (300, 300)
             metrics = draw.get_font_metrics(WandImage(width=1, height=1), text, multiline=True)
-            text_width = int(metrics.text_width) + 5
-            text_height = int(metrics.text_height) + 5
+            text_width = max(int(metrics.text_width) + 5, 8)
+            text_height = max(int(metrics.text_height) + 5, 8)
 
-            # Create a new WandImage
             with WandImage(width=text_width, height=text_height, background=Color('transparent')) as img:
-                # Position text at top using ascender for proper multi-line rendering
-                draw.text(x=2, y=int(metrics.ascender), body=text)
+                draw.text(x=2, y=int(metrics.ascender) if metrics.ascender else font_props["size"], body=text)
                 draw(img)
 
-                # Ensure the image is in RGBA format
                 img.format = 'png'
-                img.alpha_channel = 'activate'  # Ensure alpha channel is active
-                img_blob = img.make_blob('png32')  # Use 'png32' for RGBA
-                # img.save(filename="test.png")
-                # Convert to format displayable in Tkinter
+                img.alpha_channel = 'activate'
+                img_blob = img.make_blob('png32')
                 tk_image = tk.PhotoImage(data=img_blob)
                 return tk_image
     def add_text_to_canvas(self):
@@ -68,6 +72,8 @@ class TextOperation:
             "bbox": None,
 
         }
+        if callable(self.config.preview_callback):
+            self.config.preview_callback()
 
     def delete_text(self):
         if self.config.current_selected:

@@ -40,6 +40,7 @@ class RequestCodeEnum(enum.IntEnum):
     SET_DIMENSION = 19  # 0x13
     SET_QUANTITY = 21  # 0x15
     GET_PRINT_STATUS = 163  # 0xA3
+    CONNECT = 0xC1
 
 
 class PrinterClient:
@@ -51,7 +52,8 @@ class PrinterClient:
         self.notification_data = None
 
     async def connect(self):
-        if await self.transport.connect(self.device.address):
+        # Pass BLEDevice (not just address) for more reliable BlueZ connections.
+        if await self.transport.connect(self.device):
             if not self.char_uuid:
                 await self.find_characteristics()
             logger.info(f"Successfully connected to {self.device.name}")
@@ -84,23 +86,33 @@ class PrinterClient:
         if not self.char_uuid:
             raise PrinterException("Cannot find bluetooth characteristics.")
 
-    async def send_command(self, request_code, data, timeout=10):
+    async def send_command(self, request_code, data, timeout=5):
+        if not self.transport.client or not self.transport.client.is_connected:
+            await self.connect()
+        packet = NiimbotPacket(request_code, data)
+        self.notification_event.clear()
+        self.notification_data = None
         try:
-            if not self.transport.client or not self.transport.client.is_connected:
-                await self.connect()
-            packet = NiimbotPacket(request_code, data)
             await self.transport.start_notification(self.char_uuid, self.notification_handler)
             await self.transport.write(packet.to_bytes(), self.char_uuid)
             logger.debug(f"Printer command sent - {RequestCodeEnum(request_code).name}")
-            await asyncio.wait_for(self.notification_event.wait(), timeout)  # Wait until the notification event is set
-            response = NiimbotPacket.from_bytes(self.notification_data)
-            await self.transport.stop_notification(self.char_uuid)
-            self.notification_event.clear()  # Reset the event for the next notification
-            return response
+            await asyncio.wait_for(self.notification_event.wait(), timeout)
+            if not self.notification_data:
+                return None
+            return NiimbotPacket.from_bytes(self.notification_data)
         except asyncio.TimeoutError:
             logger.error(f"Timeout occurred for request {RequestCodeEnum(request_code).name}")
+            return None
         except BLEException as e:
             logger.error(f"An error occurred: {e}")
+            return None
+        finally:
+            # Always stop notify — leaving it on breaks bulk bitmap writes / hangs finish.
+            try:
+                await self.transport.stop_notification(self.char_uuid)
+            except Exception:
+                pass
+            self.notification_event.clear()
 
     async def write_raw(self, data):
         try:
@@ -120,58 +132,179 @@ class PrinterClient:
             logger.error(f"An error occurred: {e}")
 
     def notification_handler(self, sender, data):
-        # print(f"Notification from {sender}: {data}")
         logger.trace(f"Notification: {data}")
         self.notification_data = data
         self.notification_event.set()
 
     async def print_image(self, image: Image, density: int = 3, quantity: int = 1, vertical_offset= 0,
-                          horizontal_offset = 0):
+                          horizontal_offset = 0, *, invert: bool = True, use_print_clear: bool = False,
+                          page_size_6b: bool = False):
+        """Print path for D110 / B21 / B21S family.
+
+        B21S requires 6-byte SetPageSize (rows, cols, copies). Using 4-byte page size
+        makes the printer feed a blank label (AndBondStyle/niimprint#33).
+        """
+        try:
+            await self.handshake_connect()
+        except Exception as e:
+            logger.debug(f"Connect handshake skipped: {e}")
+
         await self.set_label_density(density)
         await self.set_label_type(1)
         await self.start_print()
+        if use_print_clear:
+            try:
+                await self.allow_print_clear()
+            except Exception as e:
+                logger.debug(f"Print clear skipped: {e}")
         await self.start_page_print()
-        await self.set_dimension(image.height, image.width)
-        await self.set_quantity(quantity)
+
+        # Critical for B21S: 6-byte dimension includes quantity/copies
+        if page_size_6b:
+            await self.set_dimension_v2(image.height, image.width, quantity)
+        else:
+            await self.set_dimension(image.height, image.width)
+            await self.set_quantity(quantity)
+
+        try:
+            await self.transport.stop_notification(self.char_uuid)
+        except Exception:
+            pass
+
+        row_count = 0
+        for pkt in self._encode_image(image, vertical_offset, horizontal_offset, invert=invert):
+            await self.write_raw(pkt)
+            row_count += 1
+            await asyncio.sleep(0.01)
+        logger.info(f"Sent {row_count} bitmap rows (invert={invert}, page_size_6b={page_size_6b})")
+
+        # Allow paper advance before polling
+        await asyncio.sleep(0.5)
+
+        ok = False
+        for _ in range(10):
+            packet = await self.send_command(RequestCodeEnum.END_PAGE_PRINT, b"\x01", timeout=2)
+            if packet and packet.data and packet.data[0]:
+                ok = True
+                break
+            await asyncio.sleep(0.1)
+        if not ok:
+            logger.warning("end_page_print did not ACK — continuing")
+
+        for _ in range(40):
+            status = await self.get_print_status_quick()
+            if status and status.get("page") >= quantity:
+                break
+            await asyncio.sleep(0.15)
+
+        packet = await self.send_command(RequestCodeEnum.END_PRINT, b"\x01", timeout=2)
+        if not packet:
+            logger.warning("end_print did not ACK")
+
+    async def get_print_status_quick(self):
+        packet = await self.send_command(RequestCodeEnum.GET_PRINT_STATUS, b"\x01", timeout=2)
+        if not packet or not packet.data or len(packet.data) < 4:
+            return None
+        page, progress1, progress2 = struct.unpack(">HBB", packet.data[:4])
+        return {"page": page, "progress1": progress1, "progress2": progress2}
+
+    async def print_image_v2(self, image: Image, density: int = 3, quantity: int = 1,
+                            vertical_offset=0, horizontal_offset=0):
+        """B1 protocol (niimbluelib B1PrintTask): 7-byte PrintStart + 6-byte SetPageSize.
+
+        Fixes from PR #6 review (MultiMote / hadess):
+        - total page count in PrintStart must equal quantity (not hardcoded 1)
+        - SetPageSize copies field must match quantity for multi-copy jobs
+        """
+        await self.set_label_density(density)
+        await self.set_label_type(1)
+        await self.start_print_v2(quantity=quantity)
+        await self.start_page_print()
+        await self.set_dimension_v2(image.height, image.width, quantity)
 
         for pkt in self._encode_image(image, vertical_offset, horizontal_offset):
-            # Send each line and wait for a response or status check
             await self.write_raw(pkt)
-            # Adding a short delay or status check here can help manage buffer issues
-            await asyncio.sleep(0.01)  # Adjust the delay as needed based on printer feedback
+            await asyncio.sleep(0.015)
 
-        while not await self.end_page_print():
+        for _ in range(40):
+            try:
+                if await self.end_page_print():
+                    break
+            except Exception as e:
+                logger.debug(f"end_page_print: {e}")
             await asyncio.sleep(0.05)
 
-        while True:
-            status = await self.get_print_status()
-            if status['page'] == quantity:
+        # Give B1 time to finish multi-copy jobs before tearing down BLE.
+        await asyncio.sleep(0.5 + 0.4 * max(0, quantity - 1))
+
+        for _ in range(100):
+            try:
+                status = await self.get_print_status()
+                if status and status.get("page") == quantity:
+                    break
+            except Exception as e:
+                logger.debug(f"get_print_status: {e}")
                 break
             await asyncio.sleep(0.1)
 
-        await self.end_print()
+        try:
+            await self.end_print()
+        except Exception as e:
+            logger.debug(f"end_print: {e}")
 
-    def _encode_image(self, image: Image, vertical_offset=0, horizontal_offset=0):
-        # Convert the image to monochrome
-        img = ImageOps.invert(image.convert("L")).convert("1")
+    # Backwards-compatible alias used by PR #6 / older callers
+    print_imageV2 = print_image_v2
 
-        # Apply horizontal offset
+    async def print_for_model(self, model: str, image: Image, density: int = 3, quantity: int = 1,
+                             vertical_offset=0, horizontal_offset=0):
+        """Dispatch to the correct print protocol for the selected model."""
+        from .models import uses_b1_protocol, uses_page_size_6b
+        if uses_b1_protocol(model):
+            await self.print_image_v2(image, density=density, quantity=quantity,
+                                     vertical_offset=vertical_offset,
+                                     horizontal_offset=horizontal_offset)
+        else:
+            await self.print_image(
+                image,
+                density=density,
+                quantity=quantity,
+                vertical_offset=vertical_offset,
+                horizontal_offset=horizontal_offset,
+                page_size_6b=uses_page_size_6b(model),
+            )
+
+    async def handshake_connect(self):
+        """Send Connect (0xC1) with 0x03 prefix to reset printer print state."""
+        packet = await self.send_command(RequestCodeEnum.CONNECT, b"\x01", timeout=3)
+        return packet is not None
+
+    def _encode_image(self, image: Image, vertical_offset=0, horizontal_offset=0, invert: bool = True):
+        """Encode image rows for PrintBitmapRow (0x85).
+
+        Matches AndBondStyle/niimprint: invert so black→bit1, counts can be zeros.
+        """
+        gray = image.convert("L")
+        if invert:
+            gray = ImageOps.invert(gray)
+        img = gray.convert("1", dither=Image.Dither.NONE)
+
         if horizontal_offset > 0:
             img = ImageOps.expand(img, border=(horizontal_offset, 0, 0, 0), fill=1)
         else:
             img = img.crop((-horizontal_offset, 0, img.width, img.height))
 
-        # Add vertical padding for vertical offset
         img = ImageOps.expand(img, border=(0, vertical_offset, 0, 0), fill=1)
 
+        if img.width % 8 != 0:
+            pad = 8 - (img.width % 8)
+            img = ImageOps.expand(img, border=(0, 0, pad, 0), fill=1)
+
         for y in range(img.height):
-            line_data = [img.getpixel((x, y)) for x in range(img.width)]
-            line_data = "".join("0" if pix == 0 else "1" for pix in line_data)
-            line_data = int(line_data, 2).to_bytes(math.ceil(img.width / 8), "big")
-            counts = (0, 0, 0)  # It seems like you can always send zeros
-            header = struct.pack(">H3BB", y, *counts, 1)
-            pkt = NiimbotPacket(0x85, header + line_data)
-            yield pkt
+            bitstring = "".join("0" if img.getpixel((x, y)) == 0 else "1" for x in range(img.width))
+            payload = int(bitstring, 2).to_bytes(img.width // 8, "big")
+            # Zeros are accepted by B21/B21S firmware (AndBondStyle)
+            header = struct.pack(">H3BB", y, 0, 0, 0, 1)
+            yield NiimbotPacket(0x85, header + payload)
 
     async def get_info(self, key):
         response = await self.send_command(RequestCodeEnum.GET_INFO, bytes((key,)))
@@ -255,45 +388,70 @@ class PrinterClient:
     async def set_label_type(self, n):
         assert 1 <= n <= 3
         packet = await self.send_command(RequestCodeEnum.SET_LABEL_TYPE, bytes((n,)))
-        return bool(packet.data[0])
+        return bool(packet and packet.data and packet.data[0])
 
     async def set_label_density(self, n):
         assert 1 <= n <= 5  # B21 has 5 levels, not sure for D11
         packet = await self.send_command(RequestCodeEnum.SET_LABEL_DENSITY, bytes((n,)))
-        return bool(packet.data[0])
+        return bool(packet and packet.data and packet.data[0])
 
     async def start_print(self):
         packet = await self.send_command(RequestCodeEnum.START_PRINT, b"\x01")
-        return bool(packet.data[0])
+        return bool(packet and packet.data and packet.data[0])
+
+    async def start_print_v2(self, quantity: int):
+        """B1 / newer printers: 7-byte PrintStart (big-endian page count + padding + color).
+
+        Wire format (niimbluelib printStart7b):
+          u16be total_pages | 0x00 0x00 0x00 0x00 | page_color
+        """
+        assert 1 <= quantity <= 65535
+        payload = struct.pack(">H", quantity) + b"\x00\x00\x00\x00\x00"
+        packet = await self.send_command(RequestCodeEnum.START_PRINT, payload)
+        return bool(packet and packet.data and packet.data[0])
+
+    start_printV2 = start_print_v2
 
     async def end_print(self):
         packet = await self.send_command(RequestCodeEnum.END_PRINT, b"\x01")
-        return bool(packet.data[0])
+        return bool(packet and packet.data and packet.data[0])
 
     async def start_page_print(self):
         packet = await self.send_command(RequestCodeEnum.START_PAGE_PRINT, b"\x01")
-        return bool(packet.data[0])
+        return bool(packet and packet.data and packet.data[0])
 
     async def end_page_print(self):
         packet = await self.send_command(RequestCodeEnum.END_PAGE_PRINT, b"\x01")
-        return bool(packet.data[0])
+        return bool(packet and packet.data and packet.data[0])
 
     async def allow_print_clear(self):
         packet = await self.send_command(RequestCodeEnum.ALLOW_PRINT_CLEAR, b"\x01")
-        return bool(packet.data[0])
+        return bool(packet and packet.data and packet.data[0])
 
     async def set_dimension(self, w, h):
         packet = await self.send_command(
             RequestCodeEnum.SET_DIMENSION, struct.pack(">HH", w, h)
         )
-        return bool(packet.data[0])
+        return bool(packet and packet.data and packet.data[0])
+
+    async def set_dimension_v2(self, w, h, copies):
+        """B1: 6-byte SetPageSize (rows, cols, copies) — copies must match quantity."""
+        assert 1 <= copies <= 65535
+        packet = await self.send_command(
+            RequestCodeEnum.SET_DIMENSION, struct.pack(">HHH", w, h, copies)
+        )
+        return bool(packet and packet.data and packet.data[0])
+
+    set_dimensionV2 = set_dimension_v2
 
     async def set_quantity(self, n):
         packet = await self.send_command(RequestCodeEnum.SET_QUANTITY, struct.pack(">H", n))
-        return bool(packet.data[0])
+        return bool(packet and packet.data and packet.data[0])
 
     async def get_print_status(self):
         packet = await self.send_command(RequestCodeEnum.GET_PRINT_STATUS, b"\x01")
+        if not packet or not packet.data or len(packet.data) < 4:
+            return None
         page, progress1, progress2 = struct.unpack(">HBB", packet.data[:4])
         return {"page": page, "progress1": progress1, "progress2": progress2}
 
