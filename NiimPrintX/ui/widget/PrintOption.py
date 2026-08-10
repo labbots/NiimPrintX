@@ -114,28 +114,29 @@ class PrintOption:
         return int(inches * self.config.label_sizes[self.config.device]["print_dpi"])
 
     def export_to_png(self, output_filename=None, horizontal_offset=0.0, vertical_offset=0.0):
-        width = self.config.canvas.winfo_reqwidth()
-        height = self.config.canvas.winfo_reqheight()
+        # Use the canvas's real pixel size (reqwidth can be wrong before map → crop offset)
+        width = max(int(self.config.canvas.winfo_width()), int(self.config.canvas.winfo_reqwidth()), 1)
+        height = max(int(self.config.canvas.winfo_height()), int(self.config.canvas.winfo_reqheight()), 1)
 
         horizontal_offset_pixels = self.mm_to_pixels(horizontal_offset)
         vertical_offset_pixels = self.mm_to_pixels(vertical_offset)
 
-        x1, y1, x2, y2 = self.config.canvas.bbox(self.config.bounding_box)
+        # coords() is the true geometry; bbox() expands by the outline and shifts the crop.
+        crop_id = getattr(self.config, "print_area_box", None) or self.config.bounding_box
+        x1, y1, x2, y2 = self.config.canvas.coords(crop_id)
+        x1 = float(x1) + horizontal_offset_pixels
+        y1 = float(y1) + vertical_offset_pixels
+        x2 = float(x2) + horizontal_offset_pixels
+        y2 = float(y2) + vertical_offset_pixels
 
-        x1 += horizontal_offset_pixels
-        y1 += vertical_offset_pixels
-        x2 += horizontal_offset_pixels
-        y2 += vertical_offset_pixels
-
-        bbox_width = x2 - x1
-        bbox_height = y2 - y1
+        bbox_width = max(1, int(round(x2 - x1)))
+        bbox_height = max(1, int(round(y2 - y1)))
 
         surface = cairo.ImageSurface(cairo.FORMAT_ARGB32, width, height)
         ctx = cairo.Context(surface)
-        ctx.set_source_rgb(1, 1, 1)  # White background
+        ctx.set_source_rgb(1, 1, 1)
         ctx.paint()
 
-        # Drawing images (if any)
         if self.config.image_items:
             for img_id, img_props in self.config.image_items.items():
                 coords = self.config.canvas.coords(img_id)
@@ -147,7 +148,6 @@ class PrintOption:
                 ctx.set_source_surface(img_surface, coords[0], coords[1])
                 ctx.paint()
 
-        # Drawing text items
         if self.config.text_items:
             for text_id, text_props in self.config.text_items.items():
                 coords = self.config.canvas.coords(text_id)
@@ -159,8 +159,7 @@ class PrintOption:
                 ctx.set_source_surface(img_surface, coords[0], coords[1])
                 ctx.paint()
 
-        # Create a cropped surface to save
-        cropped_surface = cairo.ImageSurface(cairo.FORMAT_ARGB32, int(bbox_width), int(bbox_height))
+        cropped_surface = cairo.ImageSurface(cairo.FORMAT_ARGB32, bbox_width, bbox_height)
         cropped_ctx = cairo.Context(cropped_surface)
         cropped_ctx.set_source_surface(surface, -x1, -y1)
         cropped_ctx.paint()
@@ -168,9 +167,8 @@ class PrintOption:
             cropped_surface.write_to_png(output_filename)
         else:
             image_bytes = cropped_surface.get_data()
-            img = Image.frombuffer("RGBA", (int(bbox_width), int(bbox_height)), image_bytes, "raw", "BGRA", 0, 1)
-
-            return img
+            img = Image.frombuffer("RGBA", (bbox_width, bbox_height), image_bytes, "raw", "BGRA", 0, 1)
+            return img.copy()
 
     def display_image_in_popup(self, filename):
         # Create a new Toplevel window
@@ -190,11 +188,13 @@ class PrintOption:
         option_frame.grid(row=1, column=0, columnspan=4, padx=20, pady=10, sticky="ew")
 
         self.print_density = tk.IntVar()
-        self.print_density.set(3)
+        default_density = self.config.label_sizes[self.config.device]['density']
+        density_max = self.config.label_sizes[self.config.device].get('density_max', default_density)
+        self.print_density.set(default_density)
         tk.Label(option_frame, text="Density").grid(row=0, column=0, padx=5, pady=5, sticky="e")
         density_slider = tk.Spinbox(option_frame,
                                     from_=1,
-                                    to=self.config.label_sizes[self.config.device]['density'],
+                                    to=density_max,
                                     textvariable=self.print_density,
                                     width=4
                                     )
@@ -277,7 +277,12 @@ class PrintOption:
         self.print_button.config(state=tk.DISABLED)
         self.config.print_job = True
 
-        image = image.rotate(-int(90), PIL.Image.NEAREST, expand=True)
+        # D11/D110 family: labels are usually printed with -90° so the long edge feeds.
+        # B21 / B21S / B1 use printDirection "top" — do not rotate (matches niimbluelib).
+        device = (self.config.device or "").lower()
+        if device not in ("b21", "b21s", "b1", "b18"):
+            image = image.rotate(-90, PIL.Image.NEAREST, expand=True)
+
         future = asyncio.run_coroutine_threadsafe(
             self.print_op.print(image, density, quantity), self.root.async_loop
         )

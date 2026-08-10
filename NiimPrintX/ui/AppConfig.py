@@ -1,6 +1,12 @@
 import os
 import appdirs
 import platform
+
+
+def _sizes(*pairs):
+    return {f"{w}mm x {h}mm": (w, h) for w, h in pairs}
+
+
 class AppConfig:
     def __init__(self):
         self.os_system = platform.system()
@@ -14,68 +20,60 @@ class AppConfig:
         self.canvas = None
         self.bounding_box = None
         self.device = None
+        # density = default; density_max = slider ceiling (B-family uses 1–5)
         self.label_sizes = {
             "d110": {
-                "size": {
-                    "30mm x 15mm": (30, 15),
-                    "40mm x 12mm": (40, 12),
-                    "50mm x 14mm": (50, 14),
-                    "75mm x 12mm": (75, 12),
-                    "109mm x 12.5mm": (109, 12.5),
-                },
+                "size": _sizes((30, 15), (40, 12), (50, 14), (75, 12), (109, 12.5)),
                 "density": 3,
-                "print_dpi": 203
+                "density_max": 3,
+                "print_dpi": 203,
             },
             "d11": {
-                "size": {
-                    "30mm x 14mm": (30, 14),
-                    "40mm x 12mm": (40, 12),
-                    "50mm x 14mm": (50, 14),
-                    "75mm x 12mm": (75, 12),
-                    "109mm x 12.5mm": (109, 12.5),
-                },
+                "size": _sizes((30, 14), (40, 12), (50, 14), (75, 12), (109, 12.5)),
                 "density": 3,
-                "print_dpi": 203
-
+                "density_max": 3,
+                "print_dpi": 203,
             },
             "d11_h": {
-                "size": {
-                    "30mm x 14mm": (30, 14),
-                    "40mm x 12mm": (40, 12),
-                    "50mm x 14mm": (50, 14),
-                    "75mm x 12mm": (75, 12),
-                    "109mm x 12.5mm": (109, 12.5),
-                },
+                "size": _sizes((30, 14), (40, 12), (50, 14), (75, 12), (109, 12.5)),
                 "density": 3,
-                "print_dpi": 300
+                "density_max": 5,
+                "print_dpi": 300,
             },
             "d101": {
-                "size": {
-                    "30mm x 14mm": (30, 14),
-                    "40mm x 12mm": (40, 12),
-                    "50mm x 14mm": (50, 14),
-                    "75mm x 12mm": (75, 12),
-                    "109mm x 12.5mm": (109, 12.5),
-                },
+                "size": _sizes((30, 14), (40, 12), (50, 14), (75, 12), (109, 12.5)),
                 "density": 3,
-                "print_dpi": 203
-
+                "density_max": 3,
+                "print_dpi": 203,
             },
             "b18": {
-                "size": {
-                    "40mm x 14mm": (40, 14),
-                    "50mm x 14mm": (50, 14),
-                    "120mm x 14mm": (120, 14),
-                },
+                "size": _sizes((40, 14), (50, 14), (120, 14)),
                 "density": 3,
-                "print_dpi": 203
-
-            }
+                "density_max": 5,
+                "print_dpi": 203,
+            },
+            "b1": {
+                "size": _sizes((50, 30), (50, 15), (60, 40), (40, 30), (30, 15), (80, 50)),
+                "density": 3,
+                "density_max": 5,
+                "print_dpi": 203,
+            },
+            "b21": {
+                "size": _sizes((50, 30), (50, 15), (40, 30), (30, 15), (80, 50), (60, 40)),
+                "density": 3,
+                "density_max": 5,
+                "print_dpi": 203,
+            },
+            "b21s": {
+                "size": _sizes((50, 30), (50, 15), (40, 30), (30, 15), (80, 50), (60, 40)),
+                "density": 3,
+                "density_max": 5,
+                "print_dpi": 203,
+            },
         }
         self.current_label_size = None
         self.frames = {}
         self.print_job = False
         self.printer_connected = False
-        self.cache_dir = appdirs.user_cache_dir('NiimPrintX')
-
-
+        self.cache_dir = appdirs.user_cache_dir("NiimPrintX")
+        self.preview_callback = None

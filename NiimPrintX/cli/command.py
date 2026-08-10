@@ -5,6 +5,7 @@ from NiimPrintX.nimmy.bluetooth import find_device
 from NiimPrintX.nimmy.printer import PrinterClient, InfoEnum
 from NiimPrintX.nimmy.logger_config import setup_logger, get_logger, logger_enable
 from NiimPrintX.nimmy.helper import print_info, print_error, print_success
+from NiimPrintX.nimmy.models import CLI_MODELS, PRINTHEAD_WIDTH
 
 from devtools import debug
 
@@ -32,7 +33,7 @@ def niimbot_cli(ctx, verbose):
 @click.option(
     "-m",
     "--model",
-    type=click.Choice(["b1", "b18", "b21", "d11", "d11_h", "d110"], False),
+    type=click.Choice(list(CLI_MODELS), False),
     default="d110",
     show_default=True,
     help="Niimbot printer model",
@@ -84,12 +85,9 @@ def niimbot_cli(ctx, verbose):
 def print_command(model, density, rotate, image, quantity, vertical_offset, horizontal_offset):
     logger.info(f"Niimbot Printing Start")
 
-    if model in ("b1", "b18", "b21"):
-        max_width_px = 384
-    if model in ("d11", "d11_h", "d110"):
-        max_width_px = 240
+    max_width_px = PRINTHEAD_WIDTH.get(model, 384)
 
-    if model in ("b18", "d11", "d11_h", "d110") and density > 3:
+    if model in ("b18", "d11", "d110") and density > 3:
         density = 3
     try:
         image = Image.open(image)
@@ -110,8 +108,14 @@ async def _print(model, density, image, quantity, vertical_offset, horizontal_of
         printer = PrinterClient(device)
         if await printer.connect():
             print(f"Connected to {device.name}")
-        await printer.print_image(image, density=density, quantity=quantity, vertical_offset=vertical_offset,
-                                  horizontal_offset=horizontal_offset)
+        await printer.print_for_model(
+            model,
+            image,
+            density=density,
+            quantity=quantity,
+            vertical_offset=vertical_offset,
+            horizontal_offset=horizontal_offset,
+        )
         print_success("Print job completed")
         await printer.disconnect()
     except Exception as e:
@@ -123,7 +127,7 @@ async def _print(model, density, image, quantity, vertical_offset, horizontal_of
 @click.option(
     "-m",
     "--model",
-    type=click.Choice(["b1", "b18", "b21", "d11", "d11_h", "d110"], False),
+    type=click.Choice(list(CLI_MODELS), False),
     default="d110",
     show_default=True,
     help="Niimbot printer model",

@@ -8,16 +8,25 @@
 
 ![NiimPrintX](docs/assets/NiimPrintX.gif)
 
-NiimPrintX is a Python library designed to seamlessly interface with NiimBot label printers via Bluetooth. 
+NiimPrintX is a Python library designed to seamlessly interface with NiimBot label printers via Bluetooth.
 It provides both a Command-Line Interface (CLI) and a Graphical User Interface (GUI) for users to design and print labels efficiently.
+
+> **Hardware testing disclaimer:** The B21S protocol fixes and end-to-end print path in this branch were **tested only on a Niimbot B21S**. B1 support is included based on [PR #6](https://github.com/labbots/NiimPrintX/pull/6) (see Credits), but has **not** been hardware-verified here. Other models keep their previous code paths — please validate on your own printer before relying on them.
 
 ## Key Features
 * **Cross-Platform Compatibility:** NiimPrintX works on Windows, macOS, and Linux, ensuring broad usability.
 * **Bluetooth Connectivity:** Effortlessly connect to your NiimBot label printers via Bluetooth.
-* **Comprehensive Model Support:** Compatible with multiple NiimBot printer models (D11, B21, B1, D110, B18).
-* **Dual Interface Options:** Provides both Command-Line Interface (CLI) and Graphical User Interface (GUI) to suit different user preferences.
-* **Custom Label Design:** The GUI app enables users to design labels tailored to specific devices and label sizes.
-* **Advanced Print Settings:** Customize print density, quantity, and image rotation for precise label printing.
+* **Model Support:** D11, D11_H, D110, D101, B18, B21, **B21S**, and **B1** (see testing disclaimer above).
+* **Dual Interface Options:** CLI and GUI for automation or interactive label design.
+* **Custom Label Design:** GUI supports text, emoji, built-in icons, custom images, and a live 1-bit thermal preview.
+* **Advanced Print Settings:** Density, quantity, and image rotation.
+* **Protocol variants:** Model-aware print dispatch (B1 7-byte PrintStart / 6-byte SetPageSize; B21S 6-byte SetPageSize + BLE MTU handling).
+
+## What's new (this contribution)
+* **B21S support:** 6-byte `SetPageSize` (blank labels with 4-byte size), BLE MTU negotiation, reliable GATT writes, Connect handshake, and model name matching that does not confuse `B1` with `B21`/`B21S`.
+* **B1 support:** Merged protocol approach from [PR #6](https://github.com/labbots/NiimPrintX/pull/6) by [@LorisPolenz](https://github.com/LorisPolenz), including MultiMote's review fix so print quantity / page count is passed correctly.
+* **GUI:** Image tab, emoji picker, live thermal preview, B1/B21/B21S label sizes, density max 1–5 for B-family, print-area-accurate export (no outline crop offset).
+* **CLI:** `-m b21s` (and existing `-m b1`) with shared model metadata.
 
 ## Requirements
 To run NiimPrintX, you need to have the following installed:
@@ -25,6 +34,7 @@ To run NiimPrintX, you need to have the following installed:
 * Python 3.12 or later
 * ImageMagick library
 * Poetry for dependency management
+* On Linux: Bluetooth (`bluez`), and for the GUI: `libcairo2-dev`, `pkg-config`, `python3-tk`
 
 
 ## Installation
@@ -43,6 +53,12 @@ Install the necessary dependencies using Poetry:
 ```shell
 python -m venv venv
 poetry install
+```
+
+Linux (Debian/Ubuntu) extras for BLE + GUI:
+
+```shell
+sudo apt-get install -y imagemagick libcairo2-dev pkg-config python3-tk bluez
 ```
 
 ### Note:
@@ -81,7 +97,7 @@ Commands:
 Usage: python -m NiimPrintX.cli print [OPTIONS]
 
 Options:
-  -m, --model [b1|b18|b21|d11|d11_h|d110]
+  -m, --model [b1|b18|b21|b21s|d11|d11_h|d110|d101]
                                   Niimbot printer model  [default: d110]
   -d, --density INTEGER RANGE     Print density  [default: 3; 1<=x<=5]
   -n, --quantity INTEGER          Print quantity  [default: 1]
@@ -94,6 +110,12 @@ Options:
 **Example:**
 
 ```shell
+# B21S (50×30 mm @ ~203 dpi → typically 384×240 px, no rotate)
+python -m NiimPrintX.cli print -m b21s -d 5 -n 1 -i path/to/image.png
+
+# B1 (protocol from PR #6 — not hardware-tested in this contribution)
+python -m NiimPrintX.cli print -m b1 -d 3 -n 2 -i path/to/image.png
+
 python -m NiimPrintX.cli print -m d110 -d 3 -n 1 -r 90 -i path/to/image.png
 ```
 
@@ -103,7 +125,7 @@ python -m NiimPrintX.cli print -m d110 -d 3 -n 1 -r 90 -i path/to/image.png
 Usage: python -m NiimPrintX.cli info [OPTIONS]
 
 Options:
-  -m, --model [b1|b18|b21|d11|d110]
+  -m, --model [b1|b18|b21|b21s|d11|d11_h|d110|d101]
                                   Niimbot printer model  [default: d110]
   -h, --help                      Show this message and exit.
 ```
@@ -111,20 +133,28 @@ Options:
 **Example:**
 
 ```shell
-python -m NiimPrintX.cli info -m d110
+python -m NiimPrintX.cli info -m b21s
 ```
 
 ### Graphical User Interface (GUI)
-The GUI application allows users to design labels based on the label device and label size. Simply run the GUI application:
+Design labels with text, emoji, icons, and images; preview a 1-bit thermal render; then print:
 
 ```shell
-python -m NiimPrintX.ui
+poetry run python -m NiimPrintX.ui
 ```
+
+1. Select device (e.g. **B21S**) and label size  
+2. Add content from the Text / Emoji, Icons, or Image tabs  
+3. Use **Thermal preview** to check alignment  
+4. Connect → Print  
 
 ## Contributing
 Contributions are welcome! Please fork the repository and submit a pull request with your improvements.
 
 ## Credits
+* **B1 printer protocol:** Adapted from [PR #6 — Implement Support for B1 Printer](https://github.com/labbots/NiimPrintX/pull/6) by [@LorisPolenz](https://github.com/LorisPolenz), with review feedback from [@MultiMote](https://github.com/MultiMote) (page-count / quantity in PrintStart) and testing notes from [@hadess](https://github.com/hadess).
+* **B21S blank-label / 6-byte SetPageSize insight:** Community findings in [AndBondStyle/niimprint#33](https://github.com/AndBondStyle/niimprint/issues/33) and related discussion in [#17](https://github.com/AndBondStyle/niimprint/issues/17).
+* **Protocol reference:** [niimbluelib](https://github.com/MultiMote/niimbluelib) / [NiimBlue](https://github.com/MultiMote/niimblue) by [@MultiMote](https://github.com/MultiMote).
 * Icons made by [Dave Gandy](https://www.flaticon.com/authors/dave-gandy) from [www.flaticon.com](https://www.flaticon.com/)
 * Icons made by [Pixel perfect](https://www.flaticon.com/authors/pixel-perfect) from [www.flaticon.com](https://www.flaticon.com/)
 * Icons made by [Freepik](https://www.freepik.com) from [www.flaticon.com](https://www.flaticon.com/)
