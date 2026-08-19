@@ -101,6 +101,16 @@ files = [
 ]
 
 [[package]]
+name = "convert"
+version = "0.1.2"
+description = "simple multi-purpose converter"
+optional = false
+python-versions = "*"
+files = [
+    {file = "convert-0.1.2.tar.gz", hash = "sha256:61f2d399d31f2031cc00041832a35d9b487742e83cb5c788fcbe0ba3f6a03d55"},
+]
+
+[[package]]
 name = "dbus-fast"
 version = "2.21.1"
 description = "A faster version of dbus-next"
@@ -975,4 +985,4 @@ all = ["winrt-Windows.Foundation.Collections[all] (>=3.2.1.0,<3.3.0.0)", "winrt-
 [metadata]
 lock-version = "2.1"
 python-versions = ">=3.12,<3.14"
-content-hash = "6315437a792eb52c01d5dbfde3122ca2855a0e472d9beceb9b4286862d3e73e8"
+content-hash = "c0a8ac668ca6ec868b94fa93614075dfbb3bc5370f988319b2bae067080a070d"

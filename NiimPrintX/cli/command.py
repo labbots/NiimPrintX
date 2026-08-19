@@ -33,7 +33,7 @@ def niimbot_cli(ctx, verbose):
     "-m",
     "--model",
     type=click.Choice(["b1", "b18", "b21", "d11", "d11_h", "d110"], False),
-    default="d110",
+    default="d11",
     show_default=True,
     help="Niimbot printer model",
 )

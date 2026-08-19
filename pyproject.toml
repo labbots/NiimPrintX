@@ -18,6 +18,8 @@ pycairo = "^1.27.0"
 wand = "^0.6.13"
 appdirs = "^1.4.4"
 rich = "^13.7.1"
+devtools = "^0.12.2"
+convert = "^0.1.2"
 
 [tool.poetry.group.dev.dependencies]
 devtools = "^0.12.2"

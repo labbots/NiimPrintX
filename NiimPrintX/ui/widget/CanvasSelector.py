@@ -15,7 +15,7 @@ class CanvasSelector:
     def create_widgets(self):
         device_label = tk.Label(self.frame, text="Device")
         device_label.pack(side=tk.LEFT, padx=10)
-        self.selected_device = tk.StringVar(value="D110")
+        self.selected_device = tk.StringVar(value="D11")
         device_option = ttk.Combobox(self.frame, textvariable=self.selected_device,
                                      values=list(map(lambda x: x.upper(), self.config.label_sizes.keys())),
                                      state="readonly")
