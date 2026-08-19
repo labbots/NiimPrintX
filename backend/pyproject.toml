@@ -1,0 +1,41 @@
+[tool.poetry]
+name = "NiimStudio"
+version = "0.1.0"
+description = "Console application for printing labels with Niimbot printers"
+authors = ["Labbots <labbots@gmail.com>"]
+license = "GNU GPLv3"
+readme = "README.md"
+packages = [{include = "niimstudio", from = "src"}]
+
+[tool.poetry.dependencies]
+python = ">=3.12,<3.14"
+click = "^8.1.7"
+bleak = "^1.0.0"
+loguru = "^0.7.2"
+pillow = "^11.0.0"
+rich = "^13.7.1"
+
+[tool.poetry.group.dev.dependencies]
+pyinstaller = "^6.6.0"
+pytest = "^8.3.5"
+pytest-cov = "^6.2.1"
+ruff = "^0.12.0"
+
+[tool.poetry.scripts]
+niimstudio = "niimstudio.cli.command:niimbot_cli"
+niimprintx = "niimstudio.cli.command:niimbot_cli"
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+addopts = "--strict-markers --strict-config --cov=niimstudio.cli --cov=niimstudio.nimmy --cov-report=term-missing --cov-fail-under=80"
+
+[tool.ruff]
+target-version = "py312"
+line-length = 120
+
+[tool.ruff.lint]
+select = ["E4", "E7", "E9", "F", "I", "B"]
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"

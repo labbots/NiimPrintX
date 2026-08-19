@@ -1,44 +1,51 @@
-# This workflow will install Python dependencies, run tests and lint with a single version of Python
-# For more information see: https://docs.github.com/en/actions/automating-builds-and-tests/building-and-testing-python
-
-name: Python application
+name: Python console application
 
 on:
   push:
-    branches: [ "main" ]
+    branches: ["main"]
   pull_request:
-    branches: [ "main" ]
+    branches: ["main"]
 
 permissions:
   contents: read
 
 jobs:
-  build:
-
+  test:
+    defaults:
+      run:
+        working-directory: backend
+    strategy:
+      matrix:
+        python-version: ["3.12", "3.13"]
     runs-on: ubuntu-latest
-
     steps:
-    - uses: actions/checkout@v4
-    - name: Set up Python 3.12
-      uses: actions/setup-python@v3
-      with:
-        python-version: "3.12"
-    - name: Install system dependencies
-      run: |
-        sudo apt-get update
-        sudo apt-get install -y imagemagick libmagickwand-dev python3-tk xvfb libcairo2-dev pkg-config
-    - name: Install Python dependencies
-      run: |
-        python -m pip install --upgrade pip
-        pip install flake8 pytest
-        # Install core dependencies (excluding macOS-specific packages)
-        if [ -f requirements-ci.txt ]; then pip install -r requirements-ci.txt; fi
-    - name: Lint with flake8
-      run: |
-        # stop the build if there are Python syntax errors or undefined names
-        flake8 . --count --select=E9,F63,F7,F82 --show-source --statistics
-        # exit-zero treats all errors as warnings. The GitHub editor is 127 chars wide
-        flake8 . --count --exit-zero --max-complexity=10 --max-line-length=127 --statistics
-    - name: Test with pytest
-      run: |
-        pytest || echo "No tests found, skipping"
+      - uses: actions/checkout@v4
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python-version }}
+      - name: Install Poetry
+        run: pipx install poetry==1.8.2
+      - name: Select Python interpreter
+        run: poetry env use "$pythonLocation/bin/python"
+      - name: Install dependencies
+        run: poetry install
+      - name: Validate package metadata
+        run: poetry check
+      - name: Compile Python sources
+        run: poetry run python -m compileall -q src/niimstudio
+      - name: Check code style
+        run: poetry run ruff check src/niimstudio tests
+      - name: Check formatting
+        run: poetry run ruff format --check src/niimstudio tests
+      - name: Run tests
+        run: poetry run pytest
+      - name: Build Python distributions
+        if: matrix.python-version == '3.12'
+        run: poetry build
+      - name: Build console executable
+        if: matrix.python-version == '3.12'
+        run: poetry run pyinstaller spec_files/cli_app/NiimStudio.spec --noconfirm --clean
+      - name: Smoke-test console executable
+        if: matrix.python-version == '3.12'
+        run: dist/niimstudio --help
