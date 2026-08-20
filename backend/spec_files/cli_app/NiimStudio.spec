@@ -8,7 +8,7 @@ a = Analysis(
     [str(project_root / "src" / "niimstudio" / "cli" / "__main__.py")],
     pathex=[str(project_root / "src")],
     binaries=[],
-    datas=[],
+    datas=[(str(project_root / "src" / "niimstudio" / "domain" / "printers.toml"), "niimstudio/domain")],
     hiddenimports=[],
     hookspath=[],
     hooksconfig={},

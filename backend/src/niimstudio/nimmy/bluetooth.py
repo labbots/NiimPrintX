@@ -6,10 +6,11 @@ from typing import Any
 from bleak import BleakClient, BleakScanner
 from bleak.exc import BleakError
 
+from niimstudio.domain.printer_capabilities import PRINTER_CAPABILITIES
+
 from .exception import BLEException
 from .logger_config import get_logger
 
-KNOWN_MODEL_PREFIXES = ("d11_h", "d110", "d11", "b21", "b18", "b1")
 BLE_OPERATION_TIMEOUT_SECONDS = 10.0
 BLE_SCAN_TIMEOUT_SECONDS = 10.0
 
@@ -22,8 +23,14 @@ def _normalize_model(value: str) -> str:
 
 def _device_model(name: str) -> str | None:
     normalized_name = _normalize_model(name)
-    matches = [model for model in KNOWN_MODEL_PREFIXES if normalized_name.startswith(_normalize_model(model))]
-    return max(matches, key=lambda model: len(_normalize_model(model)), default=None)
+    matches = [
+        (printer.model_id, prefix)
+        for printer in PRINTER_CAPABILITIES
+        for prefix in printer.discovery_prefixes
+        if normalized_name.startswith(_normalize_model(prefix))
+    ]
+    match = max(matches, key=lambda candidate: len(_normalize_model(candidate[1])), default=None)
+    return match[0] if match else None
 
 
 async def find_device(device_name_prefix: str):

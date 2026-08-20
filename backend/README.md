@@ -13,7 +13,7 @@ React interface is developed independently.
 - Supported CLI model selectors: B1, B18, B21, D11, D11_H, and D110
 - Linux, macOS, and Windows console packaging
 
-The complete implementation checklist is in `ai/project_features.md`.
+The complete implementation checklist is in `ai/features/README.md`.
 
 ## Requirements
 

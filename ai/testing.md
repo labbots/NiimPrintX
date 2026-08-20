@@ -4,6 +4,13 @@ Tests protect behavior and architecture without requiring a live printer.
 
 ## General Rules
 
+- Develop behavior changes with a red-green-refactor cycle: write the test first,
+  run it and observe the intended failure, implement the smallest passing change,
+  then refactor while the tests remain green.
+- A new test must fail because the behavior is missing or incorrect, not because
+  of a syntax error, broken fixture, unavailable service, or unrelated failure.
+- For refactoring unprotected behavior, add characterization tests and observe
+  them pass before restructuring; add a failing test first for any behavior change.
 - Use Given-When-Then structure, either through clear blocks or concise comments where they improve readability.
 - Test public behavior and contracts, not private implementation details.
 - Keep each test focused on one behavior. Use parameterization only for distinct logical branches, boundaries, or error states.

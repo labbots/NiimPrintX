@@ -6,28 +6,13 @@ import click
 from PIL import Image
 
 from niimstudio.cli.output import print_error, print_info, print_success
+from niimstudio.domain.printer_capabilities import PRINTER_CAPABILITIES, get_printer_capabilities
 from niimstudio.nimmy.bluetooth import find_device
 from niimstudio.nimmy.exception import PrinterException
 from niimstudio.nimmy.logger_config import get_logger, logger_enable, setup_logger
 from niimstudio.nimmy.printer import MAX_PROTOCOL_VALUE, InfoEnum, PrinterClient
 
-MODEL_MAX_WIDTH_PX = {
-    "b1": 384,
-    "b18": 384,
-    "b21": 384,
-    "d11": 240,
-    "d11_h": 240,
-    "d110": 240,
-}
-MODEL_MAX_DENSITY = {
-    "b1": 5,
-    "b18": 3,
-    "b21": 5,
-    "d11": 3,
-    "d11_h": 3,
-    "d110": 3,
-}
-MODEL_CHOICES = tuple(MODEL_MAX_WIDTH_PX)
+MODEL_CHOICES = tuple(printer.model_id for printer in PRINTER_CAPABILITIES)
 
 T = TypeVar("T")
 
@@ -122,7 +107,7 @@ def print_command(
             horizontal_offset,
             vertical_offset,
         )
-        effective_density = min(density, MODEL_MAX_DENSITY[model])
+        effective_density = min(density, get_printer_capabilities(model).density_max)
         _run_async(
             _print(
                 model,
@@ -169,7 +154,7 @@ def prepare_image(
             f"image height including offset exceeds {MAX_PROTOCOL_VALUE}px",
             param_hint="--image",
         )
-    max_width_px = MODEL_MAX_WIDTH_PX[model]
+    max_width_px = get_printer_capabilities(model).max_raster_width_px
     if effective_width > max_width_px:
         raise click.BadParameter(
             f"image width including offset is {effective_width}px; {model.upper()} allows {max_width_px}px",

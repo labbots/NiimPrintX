@@ -1,8 +1,9 @@
 # React Frontend Guidelines
 
 Applies to the React/TypeScript browser UI. Product workflows and visual intent
-are in `ai/project_features.md`; backend ownership and contracts are in
-`ai/project_context.md`.
+are in `ai/features/README.md` and its feature files; backend ownership and
+contracts are in `ai/project_context.md`. The framework decision and gates are
+in `ai/decisions/001-frontend-framework.md`.
 
 ## Structure and Dependencies
 
@@ -62,7 +63,7 @@ are in `ai/project_features.md`; backend ownership and contracts are in
 
 ## Styling
 
-- Follow the "paper and signal" direction in `ai/project_features.md` rather than a generic dashboard aesthetic.
+- Follow the "paper and signal" direction in `ai/features/02-ui-foundation.md` rather than a generic dashboard aesthetic.
 - Use design tokens or CSS custom properties for color, spacing, typography, focus, and surface values.
 - Prefer classes and component styles over inline style objects, except for genuinely dynamic geometry.
 - Keep custom styles purposeful; avoid decorative gradients, excessive cards, and animation without workflow value.

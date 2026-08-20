@@ -9,6 +9,32 @@ from niimstudio.nimmy import bluetooth
 from niimstudio.nimmy.exception import BLEException
 
 
+@pytest.mark.parametrize(
+    ("model", "advertised_name"),
+    [
+        ("b1", "B1-Printer"),
+        ("b18", "B18-Printer"),
+        ("b21", "B21-Printer"),
+        ("d11", "D11-Printer"),
+        ("d11_h", "D11_H-Printer"),
+        ("d110", "D110-Printer"),
+    ],
+)
+def test_device_model_recognizes_every_supported_identity(model, advertised_name):
+    assert bluetooth._device_model(advertised_name) == model
+
+
+def test_registry_discovery_prefixes_are_normalized_unique():
+    normalized_prefixes = [
+        bluetooth._normalize_model(prefix)
+        for printer in bluetooth.PRINTER_CAPABILITIES
+        for prefix in printer.discovery_prefixes
+    ]
+
+    assert all(normalized_prefixes)
+    assert len(normalized_prefixes) == len(set(normalized_prefixes))
+
+
 def test_find_device_matches_prefix_case_insensitively(monkeypatch):
     devices = [
         SimpleNamespace(name=None, address="00"),

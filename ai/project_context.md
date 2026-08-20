@@ -9,7 +9,7 @@
 - **Package management:** Poetry for Python; npm-compatible tooling for the frontend
 - **Default deployment:** A local Python service with a browser UI on the same machine
 
-The product requirements and priorities are in `ai/project_features.md`.
+The product requirements and delivery order are in `ai/features/README.md`.
 
 ## Current Baseline
 
@@ -113,6 +113,9 @@ available in the standard library or current stack.
 
 Do not select additional state, component, or canvas libraries before their need
 is demonstrated by an implemented feature.
+
+The rationale, alternatives, and implementation gates for this choice are in
+`ai/decisions/001-frontend-framework.md`.
 
 ## Application Contracts
 

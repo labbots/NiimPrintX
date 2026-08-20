@@ -27,7 +27,7 @@ niimprintx = "niimstudio.cli.command:niimbot_cli"
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
-addopts = "--strict-markers --strict-config --cov=niimstudio.cli --cov=niimstudio.nimmy --cov-report=term-missing --cov-fail-under=80"
+addopts = "--strict-markers --strict-config --cov=niimstudio --cov-report=term-missing --cov-fail-under=80"
 
 [tool.ruff]
 target-version = "py312"
