@@ -1,9 +1,8 @@
 # NiimStudio
 
-NiimStudio currently provides a standalone Python console application for
-printing raster images with Niimbot Bluetooth label printers. The previous
-Tkinter application is archived on the `legacy/tkinter-app` branch while a new
-React interface is developed independently.
+NiimStudio provides a standalone Python console application for printing raster
+images with Niimbot Bluetooth label printers. It connects to one matching
+printer for each command and does not require a cloud account or local server.
 
 ## Features
 
@@ -11,7 +10,6 @@ React interface is developed independently.
 - Image printing with density, quantity, rotation, and pixel offsets
 - Printer serial number, software version, and hardware version queries
 - Supported CLI model selectors: B1, B18, B21, D11, D11_H, and D110
-- Linux, macOS, and Windows console packaging
 
 The complete implementation checklist is in `ai/features/README.md`.
 
@@ -83,8 +81,7 @@ poetry run pyinstaller spec_files/cli_app/NiimStudio.spec --noconfirm --clean
 ## Legacy Application
 
 The historical Tkinter editor, its assets, and GUI packaging remain available
-on the non-merge branch `legacy/tkinter-app` for reference and implementation
-research. New work does not depend on that branch.
+on the non-merge `legacy/tkinter-app` branch for reference only.
 
 ## License
 

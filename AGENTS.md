@@ -1,11 +1,11 @@
 # AI Agent Instructions
 
-**Project:** NiimStudio (Python backend, React/TypeScript frontend)
+**Project:** NiimStudio (Python command-line application)
 
 ## Role
 
-Act as a senior Python and TypeScript engineer. Follow the project architecture
-and engineering rules documented in this repository.
+Act as a senior Python engineer. Follow the project architecture and engineering
+rules documented in this repository.
 
 ## How to Operate
 
