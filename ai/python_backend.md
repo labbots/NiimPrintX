@@ -1,7 +1,7 @@
 # Python Backend Guidelines
 
-Applies to Python domain, application, adapters, FastAPI, CLI, BLE, rendering,
-and persistence code. Architecture and dependency direction are defined only in
+Applies to Python domain, application, adapters, CLI, BLE, rendering, and
+persistence code. Architecture and dependency direction are defined only in
 `ai/project_context.md`.
 
 ## Code Style
@@ -21,18 +21,16 @@ and persistence code. Architecture and dependency direction are defined only in
 - Use enums or discriminated types for finite states. Do not replace state machines with several booleans.
 - Represent absence with `None` only when absence is part of the contract; never use `None` as a swallowed error.
 - Use explicit units in names and types, such as `width_mm`, `offset_px`, and `timeout_seconds`.
-- Keep Pydantic request and response models at the API boundary. Domain and application code must not depend on Pydantic.
-- Do not create separate create/update models when their fields and invariants are genuinely identical.
-- Validate at the owning boundary: syntax and transport shape in API models, business invariants in domain/application code.
+- Validate command syntax at the CLI boundary and business invariants in domain/application code.
 
 ## Domain and Application
 
-- Domain objects contain business state and invariants, not BLE, filesystem, HTTP, GUI, or framework behavior.
+- Domain objects contain business state and invariants, not BLE, filesystem, or CLI behavior.
 - Application services are the entry point for use cases and depend on ports, not concrete adapters.
 - A use case returns typed domain/application results or raises a typed application error.
 - Keep service-to-service calls limited. Prefer a focused use case over orchestration spread across peer services.
 - Validate the complete operation before making an irreversible state change.
-- Keep transformations pure when possible. Do not duplicate conversion logic across API, CLI, and UI paths.
+- Keep transformations pure when possible. Do not duplicate conversion logic across CLI paths.
 - Keep capability lookup, geometry, protocol framing, raster metadata, and job transitions deterministic.
 
 ## Async and Hardware
@@ -56,21 +54,9 @@ and persistence code. Architecture and dependency direction are defined only in
 - Avoid N+1 I/O. Batch related reads when one operation needs a collection of resources.
 - Keep transactions or atomic write boundaries in the adapter that owns persistence. Application code coordinates multiple ports only when the use case requires it.
 
-## FastAPI and WebSocket
-
-- Route handlers validate transport input, call an application use case, and map its result. They contain no BLE, storage, rendering, or business logic.
-- Inject application services through the composition root. Do not construct concrete adapters in handlers.
-- Use typed request, response, error, and event models. Keep one authoritative schema for Python and TypeScript clients.
-- Map typed application errors centrally to stable status codes and error bodies.
-- Do not expose tracebacks, filesystem paths, tokens, BLE characteristics, or raw packets in normal responses.
-- Commands that can be retried or duplicated need explicit idempotency semantics.
-- WebSocket events include resource ID, sequence number, event type, timestamp, and typed payload.
-- A reconnecting client first obtains a current snapshot and then accepts only newer events.
-- Enforce localhost binding, origin validation, and session-token rules from `ai/project_context.md`.
-
 ## CLI
 
-- CLI commands are inbound adapters over the same application services as the API.
+- CLI commands are inbound adapters over application services.
 - Keep parsing and terminal formatting in the CLI; keep printer behavior in application services.
 - Return actionable errors and non-zero exit codes. Technical details belong behind verbose output.
 - Always disconnect and clean up on success, error, interruption, and cancellation.

@@ -109,7 +109,7 @@ that must be settled. Link existing architecture documents instead of repeating 
 A plan should normally produce one reviewable vertical slice. Split it when it
 requires unrelated user outcomes, independently deployable migrations, or more
 than one uncertain architecture decision. Do not split merely by backend and
-frontend layer when neither part is useful or verifiable on its own.
+interface layer when neither part is useful or verifiable on its own.
 
 Implementation steps must preserve test-first ordering. Do not group all tests
 after production steps or create a final "add tests" phase.

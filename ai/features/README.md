@@ -1,16 +1,15 @@
 # Product Features
 
 This directory is the canonical product requirement checklist for NiimStudio.
-Architecture and technology decisions are defined in `ai/project_context.md` and
-`ai/decisions/001-frontend-framework.md`.
+Architecture and technology decisions are defined in `ai/project_context.md`.
 
 **Legend:** `[x]` Implemented and retained | `[ ]` Missing, incomplete, or scheduled for replacement
 
 Every requirement appears in exactly one feature file. Its section name and
-item number form its stable reference, for example `Label Artboard 11`. Moving a
+item number form its stable reference, for example `Print Settings and Jobs 7`. Moving a
 requirement must not change its wording, number, or status in the same change.
 The checkbox indicates complete target behavior, not the presence of a partial
-implementation or UI shell.
+implementation or command shell.
 
 ## Implementation Workflow
 
@@ -39,80 +38,53 @@ execution records; the feature files remain the source of product truth.
 The files separate work streams; their checklists are not a mandate to implement
 every item in file order.
 
-1. Establish the pre-UI contracts in
-   `01-platform-contracts-and-printing.md`: document schema, capability snapshot,
-   renderer boundary, typed API, fake adapters, and local security handshake.
-2. Build `02-ui-foundation.md` against those contracts and deterministic fakes.
-3. Deliver `03-editor-core.md` as small vertical slices, beginning with document
-   operations, a physical artboard, text editing, and undo/redo.
-4. Integrate authoritative preview and print jobs from
-   `01-platform-contracts-and-printing.md` only after the editor can produce a
-   valid document.
-5. Pull from `04-later-scope.md` only after the core create-preview-print workflow
-   is complete, unless product priorities explicitly change.
+1. Protect the existing CLI, BLE, protocol, and raster behavior.
+2. Establish typed capability, document, rendering, persistence, and print-job
+   contracts in `01-platform-contracts-and-printing.md`.
+3. Move the CLI onto the shared services while preserving its current commands.
+4. Pull from `04-later-scope.md` only after the core CLI print workflow is
+   complete, unless product priorities explicitly change.
 
 ```text
-platform contracts and fakes
-          |
-          +--> UI foundation --> editor core
-                                      |
-renderer and printer services --------+--> preview and print integration
-                                                |
-                                                +--> later scope
+CLI, protocol, and raster baseline
+             |
+             +--> shared contracts and fake adapters
+                            |
+                            +--> CLI print workflow
+                                        |
+                                        +--> later scope
 ```
 
 ## Feature Files
 
-- `01-platform-contracts-and-printing.md`: retained CLI/protocol behavior,
-  backend contracts, rendering, persistence, printer lifecycle, and print jobs
-- `02-ui-foundation.md`: browser shell, workbench, setup surfaces, application
-  states, accessibility, and visual language
-- `03-editor-core.md`: minimum useful artboard, text and image editing, layers,
-  undo/redo, preview, and document safety
-- `04-later-scope.md`: advanced editing, smart content, templates, recovery,
-  history, packaging, localization, and optional integrations
+- `01-platform-contracts-and-printing.md`: CLI/protocol behavior, backend
+  contracts, rendering, persistence, printer lifecycle, and print jobs
+- `04-later-scope.md`: later CLI capabilities, diagnostics, packaging, and
+  optional integrations
 
-## First UI Slice
+## First CLI Slice
 
-The first reviewable UI slice is deliberately narrow:
-
-1. Load a typed capability snapshot from a fake API boundary.
-2. Show loading, failure, empty, and ready states in the workbench shell.
-3. Select a printer model and compatible physical label without hard-coded
-   capability data in components.
-4. Create an empty versioned document and render its physical and printable
-   boundaries as SVG.
-5. Complete the flow with keyboard-only operation and focused frontend tests.
-
-This slice does not require BLE, physical printing, a component library, a state
-library, a canvas library, or a desktop shell.
-
-The recommended first implementation plan is `capability-registry`. It should
-cover `Printer Models and Label Setup 6-7` and the capability portion of
-`Command-Line Interface 7`: introduce backend-owned typed capability data, move
-the existing CLI width and density constants behind it, and verify current CLI
-behavior without adding the HTTP API or frontend dependencies yet.
+The first reviewable slice establishes a backend-owned capability registry. It
+should cover `Printer Models and Label Setup 6-7` and `Command-Line Interface 7`:
+move the existing CLI width and density constants behind typed capability data
+and verify unchanged CLI behavior.
 
 ## Decisions Required Before Implementation
 
 The following product data is not yet authoritative and must be resolved in the
-relevant backend contract rather than guessed in the UI:
+relevant backend contract:
 
-- supported model matrix: the UI currently names D101 while the CLI supports B1
-  and B21 instead
 - physical label sizes, compatibility, DPI, printable bounds, safe areas, and
   millimetre-to-pixel rounding
 - whether `.niim` remains only a legacy import format or becomes the extension
   for the new safe JSON document
 - whether ImageMagick is required, optional, or replaced by another font provider
-- whether the native shell is a release requirement or later convenience
 
 ## Related Guidance
 
 - `ai/development_guidelines.md`: task context and execution rules
 - `ai/plans/README.md`: implementation-plan workflow and template
 - `ai/project_context.md`: architecture, ownership, and cross-layer contracts
-- `ai/react_frontend.md`: frontend implementation rules
 - `ai/python_backend.md`: backend implementation rules
 - `ai/testing.md`: test strategy
 - `ai/definition_of_done.md`: required verification

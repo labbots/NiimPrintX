@@ -15,8 +15,6 @@ Run checks in this order where they apply:
 | Python tests | Unit, integration, and minimum 80% coverage | `poetry --directory backend run pytest -c backend/pyproject.toml` |
 | Python lint | Ruff static checks | `poetry --directory backend run ruff check backend/src/niimstudio backend/tests` |
 | Python format | Ruff formatting | `poetry --directory backend run ruff format --check backend/src/niimstudio backend/tests` |
-| Frontend | Type check, lint, tests, production build | Run the scripts defined in `frontend/package.json` |
-| API/frontend integration | Contract and browser integration tests | Run the repository-defined suites |
 | Documentation | Paths, commands, and cross-references | Verify against the current tree |
 
 Do not invent commands for tooling the repository has not configured. If a
@@ -29,7 +27,6 @@ required suite or configuration does not exist yet, report that gap explicitly.
 - Public behavior and contracts are typed and tested.
 - Async work has timeout, cancellation, error propagation, and cleanup.
 - Persistence and imported data are versioned, validated, bounded, and non-executable.
-- UI changes include loading, empty, failure, offline/disconnected, and accessible interaction states as applicable.
 - Logs and responses contain no secrets, raw tokens, unsafe paths, or unnecessary hardware identifiers.
 - No generated files, caches, logs, local labels, or unrelated user changes are included.
 - A live printer is not the only evidence for protocol or print correctness.

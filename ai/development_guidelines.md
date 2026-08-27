@@ -19,8 +19,6 @@ Load all rows that apply to the task. The rows are additive.
 | --- | --- |
 | Architecture or cross-layer design | `ai/project_context.md`, `ai/features/README.md`, applicable feature file |
 | Python domain, application, adapters, CLI, BLE, rendering, or persistence | `ai/project_context.md`, `ai/python_backend.md` |
-| HTTP or WebSocket API | `ai/project_context.md`, `ai/python_backend.md` |
-| React UI, editor behavior, styling, or accessibility | `ai/project_context.md`, `ai/features/README.md`, applicable feature file, `ai/react_frontend.md`, `ai/decisions/001-frontend-framework.md` |
 | Tests | `ai/testing.md` and the files for the tested layer |
 | Product behavior or priorities | `ai/features/README.md`, applicable feature file |
 | Completion and verification | `ai/definition_of_done.md` |
@@ -47,7 +45,6 @@ required for a small coherent fix.
 ## Hard Rules
 
 - Never introduce `pickle` for persistence, IPC, or user-provided data.
-- Never expose raw BLE/GATT operations through the browser API.
 - Never edit generated files or commit secrets, caches, local logs, and ad hoc label files.
 - Never suppress a quality failure or remove a failing test to complete a task.
 - Ask before adding production dependencies or changing CI, release, installer, or network-exposure behavior.

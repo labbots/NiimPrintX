@@ -5,9 +5,7 @@ printers.
 
 ## Repository Structure
 
-- `backend/`: Python domain, application, printer adapters, API, and CLI
-- `frontend/`: React and TypeScript user interface (planned)
-- `desktop/`: desktop application shell (planned)
+- `backend/`: Python domain, application, printer adapters, and CLI
 
 The current implementation is the standalone Python console application in
 `backend/`. See [`backend/README.md`](backend/README.md) for installation and

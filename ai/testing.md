@@ -35,22 +35,11 @@ Tests protect behavior and architecture without requiring a live printer.
 ## Backend Integration Tests
 
 - Exercise real internal layers together and fake only external boundaries such as BLE hardware and OS integration.
-- Drive FastAPI through HTTP/WebSocket test clients rather than calling route functions directly.
-- Verify status, typed body/event, ordering, and side effects.
+- Drive CLI commands through Click's test runner rather than calling command functions directly.
+- Verify exit codes, output, and side effects.
 - Reset storage, fake transports, subscriptions, and background tasks before each test.
-- Test WebSocket snapshot/reconnect behavior, stale event rejection, and monotonic sequencing.
 - Test safe document open/save, atomic-write failure, schema migration, and bounded invalid input.
-- Compare preview and print raster bytes or stable fixtures for supported rendering scenarios.
-
-## Frontend Tests
-
-- Use the test runner and Testing Library setup defined by the frontend project.
-- Query rendered UI by role, label, and visible text rather than implementation classes or component internals.
-- Test user workflows with realistic pointer and keyboard interactions.
-- Mock the typed network boundary, not internal hooks or child components, for feature tests.
-- Verify loading, empty, stale, offline, failure, retry, cancellation, and success states.
-- Include accessibility checks for critical screens and keyboard-only completion of the basic label workflow.
-- Use end-to-end browser tests for printer setup, editing, review, and print progress with a fake backend; keep the suite small and high value.
+- Compare CLI export and print raster bytes or stable fixtures for supported rendering scenarios.
 
 ## Hardware Tests
 
