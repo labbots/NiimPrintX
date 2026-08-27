@@ -1,95 +1,52 @@
-name: "MacOS"
+name: macOS console build
 
 on:
   workflow_call:
     inputs:
       os:
+        required: true
         type: string
 
 jobs:
   macos:
     name: ${{ inputs.os }}
     runs-on: ${{ inputs.os }}
-
     steps:
-      - name: Extract Tag
-        id: get_tag_name
-        run: echo "VERSION=${GITHUB_REF/refs\/tags\//}" >> $GITHUB_OUTPUT
-
-      - name: Extract Architecture
-        id: get_architecture
-        run: echo "ARCH=$(uname -m)" >> $GITHUB_OUTPUT
-
-      - name: Checkout source code
-        uses: actions/checkout@v4
-
-      - name: Install poetry
-        run: pipx install poetry
-
-      - name: Set up Python
-        uses: actions/setup-python@v5
-#        with:
-#          cache: 'poetry'
-
+      - name: Extract version
+        id: version
+        run: echo "VERSION=${GITHUB_REF#refs/tags/}" >> "$GITHUB_OUTPUT"
+      - name: Extract architecture
+        id: architecture
+        run: echo "ARCH=$(uname -m)" >> "$GITHUB_OUTPUT"
+      - uses: actions/checkout@v4
+      - name: Install Poetry
+        run: pipx install poetry==1.8.2
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: poetry
+          cache-dependency-path: backend/poetry.lock
+      - name: Select Python interpreter
+        working-directory: backend
+        run: poetry env use "$pythonLocation/bin/python"
       - name: Install dependencies
+        working-directory: backend
         run: poetry install
-
-      - name: Show TKinter version
-        run: |
-          python3 -c 'import tkinter; tcl = tkinter.Tcl(); print(tcl.call("info", "patchlevel"))'
-
-      - name: Install ImageMagick & create-dmg
-        run: brew install imagemagick create-dmg tcl-tk python-tk
-
-      - name: Package application with PyInstaller
-        run: poetry run pyinstaller spec_files/ui_app/NiimPrintX-mac.spec --noconfirm --clean
-
-#      - name: Avoid a race condition in cpack
-#        if: ${{ inputs.os == 'macos-13' }}
-#        run: |
-#          # TODO: Replace this with a better solution
-#          # See https://github.com/actions/runner-images/issues/7522
-#          echo "Killing XProtect processes..."
-#          sudo pkill -9 XProtect || true
-#          echo "Waiting for XProtect processes to terminate..."
-#          while pgrep XProtect; do sleep 5; done
-#          echo "XProtect processes terminated."
-
-      - name: Create DMG package
-        if: ${{ inputs.os == 'macos-latest' }}
-        run: ./.github/workflows/mac-dmg-builder.sh "${{ steps.get_tag_name.outputs.VERSION }}" "${{ steps.get_architecture.outputs.ARCH }}"
-
-      - name: Create GUI compressed file
-        if: ${{ inputs.os == 'macos-13' }}
-        run: cd dist && tar -czf NiimPrintX-App-${{ steps.get_tag_name.outputs.VERSION }}-MacOSX-${{ steps.get_architecture.outputs.ARCH }}.tar.gz NiimPrintX.app
-
-      - name: Package CLI with PyInstaller
-        run: poetry run pyinstaller spec_files/cli_app/NiimPrintX-mac.spec --noconfirm --clean
-
-      - name: Create CLI compressed file
-        run: cd dist && tar -czf NiimPrintX-CLI-${{ steps.get_tag_name.outputs.VERSION }}-MacOSX-${{ steps.get_architecture.outputs.ARCH }}.tar.gz niimprintx
-
-      - name: Upload DMG package
-        if: ${{ inputs.os == 'macos-latest' }}
+      - name: Run tests
+        working-directory: backend
+        run: poetry run pytest
+      - name: Package console application
+        working-directory: backend
+        run: poetry run pyinstaller spec_files/cli_app/NiimStudio.spec --noconfirm --clean
+      - name: Smoke-test executable
+        working-directory: backend
+        run: dist/niimstudio --help
+      - name: Create archive
+        working-directory: backend
+        run: tar -C dist -czf "NiimStudio-CLI-${{ steps.version.outputs.VERSION }}-macOS-${{ steps.architecture.outputs.ARCH }}.tar.gz" niimstudio
+      - name: Upload package
         uses: actions/upload-artifact@v4
         with:
-          name: NiimPrintX-Installer-${{ steps.get_tag_name.outputs.VERSION }}-MacOSX-${{ steps.get_architecture.outputs.ARCH }}.dmg
-          path: dist/NiimPrintX-Installer-${{ steps.get_tag_name.outputs.VERSION }}-MacOSX-${{ steps.get_architecture.outputs.ARCH }}.dmg
+          name: NiimStudio-CLI-${{ steps.version.outputs.VERSION }}-macOS-${{ steps.architecture.outputs.ARCH }}.tar.gz
+          path: backend/NiimStudio-CLI-${{ steps.version.outputs.VERSION }}-macOS-${{ steps.architecture.outputs.ARCH }}.tar.gz
           retention-days: 1
-
-      - name: Upload GUI package
-        if: ${{ inputs.os == 'macos-13' }}
-        uses: actions/upload-artifact@v4
-        with:
-          name: NiimPrintX-App-${{ steps.get_tag_name.outputs.VERSION }}-MacOSX-${{ steps.get_architecture.outputs.ARCH }}.tar.gz
-          path: dist/NiimPrintX-App-${{ steps.get_tag_name.outputs.VERSION }}-MacOSX-${{ steps.get_architecture.outputs.ARCH }}.tar.gz
-          retention-days: 1
-
-      - name: Upload CLI package
-        uses: actions/upload-artifact@v4
-        with:
-          name: NiimPrintX-CLI-${{ steps.get_tag_name.outputs.VERSION }}-MacOSX-${{ steps.get_architecture.outputs.ARCH }}.tar.gz
-          path: dist/NiimPrintX-CLI-${{ steps.get_tag_name.outputs.VERSION }}-MacOSX-${{ steps.get_architecture.outputs.ARCH }}.tar.gz
-          retention-days: 1
-
-

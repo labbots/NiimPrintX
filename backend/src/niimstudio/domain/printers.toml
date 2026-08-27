@@ -1,0 +1,184 @@
+# Printer and Label Capability Registry
+#
+# This file is the single source of truth for supported printer models and
+# label types. The application loads it at startup; no Python changes are
+# needed to add, remove, or update printers or labels.
+#
+# ── Labels ──────────────────────────────────────────────────────────────
+#
+# Each [[labels]] entry defines a physical label stock. Fields:
+#
+#   label_id        Stable identifier referenced by printers (e.g. "d-12x40").
+#   display_name    Human-readable name shown in the UI and CLI.
+#   media_width_mm  Cross-feed (X) dimension of the media in millimetres.
+#   media_length_mm Feed (Y) dimension of the media in millimetres.
+#   orientations    Allowed print orientations for this label stock.
+#                   Values: "normal", "clockwise_90", "clockwise_180",
+#                   "clockwise_270".
+#
+#   [labels.printable_bounds]   The printable rectangle within the media.
+#     left_mm                   Horizontal offset from the left edge.
+#     top_mm                    Vertical offset from the top edge.
+#     width_mm                  Printable width (must fit within media_width).
+#     length_mm                 Printable length (must fit within media_length).
+#
+# All millimetre values are exact decimal strings (e.g. "12", "1.5") to
+# avoid floating-point rounding. Coordinates use a top-left origin.
+#
+# ── Printers ────────────────────────────────────────────────────────────
+#
+# Each [[printers]] entry defines a supported printer model. Fields:
+#
+#   model_id            Stable canonical identifier (e.g. "d11"). Used as the
+#                       CLI --model value and internal lookup key.
+#   display_name        Human-readable name (e.g. "NIIMBOT D11").
+#   discovery_prefixes  BLE advertised-name prefixes for device matching.
+#                       Longest-prefix wins when names overlap (e.g. "d11_h"
+#                       before "d11"). Case-insensitive at the BLE adapter.
+#   dpi_x, dpi_y        Horizontal and vertical resolution in dots per inch.
+#                       Do not assume square DPI.
+#   max_raster_width_px Maximum raster width the printer accepts, in pixels.
+#   labels              List of compatible label_id values from the labels
+#                       section above.
+#   density_min         Minimum print density (inclusive).
+#   density_default     Default density used when the user does not specify one.
+#   density_max         Maximum print density (inclusive). Values above this
+#                       are silently clamped by the CLI.
+#   orientations        Allowed print orientations for this printer.
+#   features            Hardware feature flags. Current vocabulary:
+#                       "nfc_label_identification", "thermal_transfer",
+#                       "automatic_label_calibration". An empty list means
+#                       none of these features are supported.
+#
+# Printer order matters: the CLI presents models in the order listed here.
+#
+# ── Adding a new printer ───────────────────────────────────────────────
+#
+# 1. If the printer uses a new label stock, add a [[labels]] entry first.
+# 2. Append a [[printers]] entry at the end (or at the desired CLI position).
+# 3. Run the test suite to verify validation passes.
+#
+# ───────────────────────────────────────────────────────────────────────
+
+[[labels]]
+label_id = "b-50x30"
+display_name = "50 x 30 mm"
+media_width_mm = "50"
+media_length_mm = "30"
+orientations = ["normal", "clockwise_90", "clockwise_180", "clockwise_270"]
+
+[labels.printable_bounds]
+left_mm = "1"
+top_mm = "0"
+width_mm = "48"
+length_mm = "30"
+
+[[labels]]
+label_id = "b18-14x30"
+display_name = "14 x 30 mm"
+media_width_mm = "14"
+media_length_mm = "30"
+orientations = ["normal", "clockwise_180"]
+
+[labels.printable_bounds]
+left_mm = "1"
+top_mm = "0"
+width_mm = "12"
+length_mm = "30"
+
+[[labels]]
+label_id = "d-12x40"
+display_name = "12 x 40 mm"
+media_width_mm = "12"
+media_length_mm = "40"
+orientations = ["normal", "clockwise_180"]
+
+[labels.printable_bounds]
+left_mm = "0"
+top_mm = "0"
+width_mm = "12"
+length_mm = "40"
+
+[[printers]]
+model_id = "b1"
+display_name = "NIIMBOT B1"
+discovery_prefixes = ["b1"]
+dpi_x = 203
+dpi_y = 203
+max_raster_width_px = 384
+labels = ["b-50x30"]
+density_min = 1
+density_default = 3
+density_max = 5
+orientations = ["normal", "clockwise_90", "clockwise_180", "clockwise_270"]
+features = ["nfc_label_identification"]
+
+[[printers]]
+model_id = "b18"
+display_name = "NIIMBOT B18"
+discovery_prefixes = ["b18"]
+dpi_x = 203
+dpi_y = 203
+max_raster_width_px = 384
+labels = ["b18-14x30"]
+density_min = 1
+density_default = 3
+density_max = 3
+orientations = ["normal", "clockwise_180"]
+features = ["thermal_transfer"]
+
+[[printers]]
+model_id = "b21"
+display_name = "NIIMBOT B21"
+discovery_prefixes = ["b21"]
+dpi_x = 203
+dpi_y = 203
+max_raster_width_px = 384
+labels = ["b-50x30"]
+density_min = 1
+density_default = 3
+density_max = 5
+orientations = ["normal", "clockwise_90", "clockwise_180", "clockwise_270"]
+features = []
+
+[[printers]]
+model_id = "d11"
+display_name = "NIIMBOT D11"
+discovery_prefixes = ["d11"]
+dpi_x = 203
+dpi_y = 203
+max_raster_width_px = 240
+labels = ["d-12x40"]
+density_min = 1
+density_default = 3
+density_max = 3
+orientations = ["normal", "clockwise_180"]
+features = []
+
+[[printers]]
+model_id = "d11_h"
+display_name = "NIIMBOT D11_H"
+discovery_prefixes = ["d11_h"]
+dpi_x = 300
+dpi_y = 300
+max_raster_width_px = 240
+labels = ["d-12x40"]
+density_min = 1
+density_default = 3
+density_max = 3
+orientations = ["normal", "clockwise_180"]
+features = ["automatic_label_calibration"]
+
+[[printers]]
+model_id = "d110"
+display_name = "NIIMBOT D110"
+discovery_prefixes = ["d110"]
+dpi_x = 203
+dpi_y = 203
+max_raster_width_px = 240
+labels = ["d-12x40"]
+density_min = 1
+density_default = 3
+density_max = 3
+orientations = ["normal", "clockwise_180"]
+features = []

@@ -1,0 +1,1 @@
+"""Core NiimStudio domain contracts."""

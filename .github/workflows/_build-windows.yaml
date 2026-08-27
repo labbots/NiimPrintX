@@ -1,114 +1,49 @@
-name: "Windows"
+name: Windows console build
 
 on:
   workflow_call:
 
 jobs:
   windows:
-    name: "Windows"
+    name: Windows
     runs-on: windows-latest
-
     steps:
-      - name: Extract Tag
-        id: get_tag_name
+      - name: Extract version
+        id: version
+        shell: pwsh
         run: |
           $version = $env:GITHUB_REF -replace 'refs/tags/', ''
-          echo "VERSION=$version" | Out-File -FilePath $env:GITHUB_OUTPUT -Encoding utf8 -Append
-
-      - name: Checkout source code
-        uses: actions/checkout@v4
-
-      - name: Install poetry
-        run: pipx install poetry
-
-      - name: Set up Python
-        uses: actions/setup-python@v5
+          "VERSION=$version" | Out-File -FilePath $env:GITHUB_OUTPUT -Encoding utf8 -Append
+      - uses: actions/checkout@v4
+      - name: Install Poetry
+        run: pipx install poetry==1.8.2
+      - uses: actions/setup-python@v5
         with:
-          cache: 'poetry'
-
+          python-version: "3.12"
+          cache: poetry
+          cache-dependency-path: backend/poetry.lock
+      - name: Select Python interpreter
+        working-directory: backend
+        run: poetry env use "$env:pythonLocation\python.exe"
       - name: Install dependencies
+        working-directory: backend
         run: poetry install
-
-      - name: Show TKinter version
-        run: |
-          python3 -c 'import tkinter; tcl = tkinter.Tcl(); print(tcl.call("info", "patchlevel"))'
-
-      - name: Download ImageMagick
-        run: |
-          Invoke-WebRequest -Uri https://imagemagick.org/archive/binaries/ImageMagick-7.1.1-33-portable-Q16-HDRI-x64.zip -OutFile ImageMagick.zip
-
-      - name: Extract ImageMagick
-        run: |
-          Expand-Archive -Path ImageMagick.zip -DestinationPath $env:GITHUB_WORKSPACE\resources\ImageMagick
-          $extractedFolder = "$env:GITHUB_WORKSPACE\resources\ImageMagick\ImageMagick-7.1.1-33-portable-Q16-HDRI-x64"
-                    Move-Item -Path "$extractedFolder\*" -Destination "$env:GITHUB_WORKSPACE\resources\ImageMagick" -Force
-                    Remove-Item -Path $extractedFolder -Recurse -Force
-
-      - name: Add ImageMagick to PATH
-        run: echo "$env:GITHUB_WORKSPACE\resources\ImageMagick" | Out-File -FilePath $env:GITHUB_PATH -Encoding utf8 -Append
-
-
-      - name: Verify ImageMagick installation
-        run: magick -version
-
-
-      - name: Package application with PyInstaller
-        run: poetry run pyinstaller spec_files/ui_app/NiimPrintX-windows.spec --noconfirm --clean
-
-      - name: Create release directory and move GUI files
-        run: |
-          New-Item -Path $env:GITHUB_WORKSPACE\release\NiimPrintX-App -ItemType Directory
-          Move-Item -Path $env:GITHUB_WORKSPACE\dist\NiimPrintX\* -Destination $env:GITHUB_WORKSPACE\release\NiimPrintX-App
-
-      - name: Remove dist folder content
-        run: Remove-Item "$env:GITHUB_WORKSPACE\dist\*.*"
-
-      - name: Package CLI with PyInstaller
-        run: poetry run pyinstaller spec_files/cli_app/NiimPrintX-windows.spec --noconfirm --clean
-
-      - name: Move CLI files to release directory
-        run: |
-          New-Item -Path $env:GITHUB_WORKSPACE\release\NiimPrintX-Cli -ItemType Directory
-          Move-Item -Path $env:GITHUB_WORKSPACE\dist\niimprintx\* -Destination $env:GITHUB_WORKSPACE\release\NiimPrintX-Cli
-
-
-      - name: Create GUI compressed file
-        run: |
-          $outputFolder = "$env:GITHUB_WORKSPACE\release\NiimPrintX-App"
-          $zipPath = "$env:GITHUB_WORKSPACE\release\NiimPrintX-App-${{ steps.get_tag_name.outputs.VERSION }}-Windows-X64.zip"
-          Compress-Archive -Path "$outputFolder\*" -DestinationPath $zipPath
-
-      - name: Create CLI compressed file
-        run: |
-          $outputFolder = "$env:GITHUB_WORKSPACE\release\NiimPrintX-Cli"
-          $zipPath = "$env:GITHUB_WORKSPACE\release\NiimPrintX-CLI-${{ steps.get_tag_name.outputs.VERSION }}-Windows-X64.zip"
-          Compress-Archive -Path "$outputFolder\*" -DestinationPath $zipPath
-
-      - name: List dist directory
-        run: Get-ChildItem -Path $env:GITHUB_WORKSPACE\release
-
-#      - name: Rename the GUI executable
-#        run: |
-#          $guiExePath = "$env:GITHUB_WORKSPACE\release\NiimPrintX-App\NiimPrintX.exe"
-#          $newGuiExePath = "$env:GITHUB_WORKSPACE\release\NiimPrintX-App\NiimPrintX-App-${{ steps.get_tag_name.outputs.VERSION }}-Windows-X64.exe"
-#          Rename-Item -Path $guiExePath -NewName $newGuiExePath
-#
-#          $cliExePath = "$env:GITHUB_WORKSPACE\release\NiimPrintX-Cli\niimprintx.exe"
-#          $newCliExePath = "$env:GITHUB_WORKSPACE\release\NiimPrintX-Cli\niimprintx-cli-${{ steps.get_tag_name.outputs.VERSION }}-Windows-X64.exe"
-#          Rename-Item -Path $cliExePath -NewName $newCliExePath
-
-      - name: Upload GUI package
+      - name: Run tests
+        working-directory: backend
+        run: poetry run pytest
+      - name: Package console application
+        working-directory: backend
+        run: poetry run pyinstaller spec_files/cli_app/NiimStudio.spec --noconfirm --clean
+      - name: Smoke-test executable
+        working-directory: backend
+        run: .\dist\niimstudio.exe --help
+      - name: Create archive
+        shell: pwsh
+        working-directory: backend
+        run: Compress-Archive -Path .\dist\niimstudio.exe -DestinationPath "NiimStudio-CLI-${{ steps.version.outputs.VERSION }}-Windows-X64.zip"
+      - name: Upload package
         uses: actions/upload-artifact@v4
         with:
-          name: NiimPrintX-App-${{ steps.get_tag_name.outputs.VERSION }}-Windows-X64.zip
-          path: release\NiimPrintX-App-${{ steps.get_tag_name.outputs.VERSION }}-Windows-X64.zip
+          name: NiimStudio-CLI-${{ steps.version.outputs.VERSION }}-Windows-X64.zip
+          path: backend/NiimStudio-CLI-${{ steps.version.outputs.VERSION }}-Windows-X64.zip
           retention-days: 1
-
-      - name: Upload CLI package
-        uses: actions/upload-artifact@v4
-        with:
-          name: NiimPrintX-CLI-${{ steps.get_tag_name.outputs.VERSION }}-Windows-X64.zip
-          path: release\NiimPrintX-CLI-${{ steps.get_tag_name.outputs.VERSION }}-Windows-X64.zip
-          retention-days: 1
-
-
